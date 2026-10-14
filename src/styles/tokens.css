@@ -1,0 +1,78 @@
+/*
+ * Design tokens from the Figma variables (Lineatur Prototype).
+ * Figma name `bg/panel` → CSS custom property `--bg-panel`.
+ * Only use these in components, never raw hex values.
+ */
+:root {
+  /* ── Color (dark mode) ───────────────────────────── */
+  --bg-app: #111113;
+  --bg-canvas: #0b0b0c;
+  --bg-panel: #161618;
+  --bg-elevated: #1f1f22;
+  --bg-hover: rgb(255 255 255 / 0.06);
+  --bg-inverse: #ededef;
+
+  --border-default: #2a2a2e;
+  --border-strong: #3a3a40;
+
+  --text-primary: #ededef;
+  --text-secondary: #a1a1a8;
+  --text-tertiary: #6b6b73;
+  --text-inverse: #111113;
+
+  --accent-default: #7cc4ff;
+  --accent-hover: #a3d6ff;
+  --accent-subtle: rgb(124 196 255 / 0.15);
+
+  --focus-ring: #7cc4ff;
+  --danger: #f15b5b;
+
+  /* ── Spacing (4 px grid) ─────────────────────────── */
+  --space-0: 0px;
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+
+  /* ── Radius ──────────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 999px;
+
+  /* ── Layout ──────────────────────────────────────── */
+  --size-topbar: 44px;
+  --size-panel: 280px;
+  --size-statusbar: 28px;
+  --size-control-sm: 28px;
+  --size-control-md: 32px;
+  --size-icon: 16px;
+
+  /* ── Typography ──────────────────────────────────── */
+  --font-ui: 'Geist Variable', system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+
+  /* Text styles: size / line-height / weight (Figma: ui/xs … mono/sm) */
+  --text-xs-size: 11px;   --text-xs-line: 16px;   /* ui/xs – section titles, 500, uppercase, +4% */
+  --text-sm-size: 12px;   --text-sm-line: 16px;   /* ui/sm – labels */
+  --text-base-size: 13px; --text-base-line: 20px; /* ui/base, ui/md (500) */
+  --text-h-sm-size: 15px; --text-h-sm-line: 20px; /* heading/sm, 600 */
+  --text-h-lg-size: 22px; --text-h-lg-line: 28px; /* heading/lg, 600 */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* ── Motion ──────────────────────────────────────── */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+}
