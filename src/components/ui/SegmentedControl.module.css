@@ -1,0 +1,16 @@
+.root {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    background: var(--bg-canvas);
+    border: none;
+    border-radius: var(--radius-md);
+}
+
+.segment {
+    flex: 1;
+    border: 1px solid var(--border-default);
+    color: var(--text-secondary);
+    font: inherit;
+
+}
