@@ -1,0 +1,26 @@
+.shell {
+    display: grid;
+    grid-template-columns: 1fr var(--size-panel);
+    grid-template-rows: var(--size-topbar) 1fr var(--size-statusbar);
+    grid-template-areas:
+        "topBar topBar"
+        "canvas panel"
+        "statusBar statusBar";
+    height: 100%;
+}
+
+.topBar {
+    grid-area: topBar; border-bottom: 1px solid var(--border-default);
+}
+
+.canvas {
+    grid-area: canvas; background: var(--bg-canvas); overflow: hidden;
+}
+
+.panel {
+    grid-area: panel; background: var(--bg-panel); border-left: 1px solid var(--border-default); overflow-y: auto;
+}
+
+.statusBar {
+    grid-area: statusBar; border-top: 1px solid var(--border-default);
+}

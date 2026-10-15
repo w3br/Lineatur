@@ -1,18 +1,14 @@
 // Placeholder – replace with the app shell (TopBar, Canvas, Panel, StatusBar).
+import {AppShell} from "./components/layout/AppShell.tsx";
+
 function App() {
   return (
-    <main
-      style={{
-        display: 'grid',
-        placeItems: 'center',
-        height: '100%',
-        color: 'var(--text-secondary)',
-      }}
-    >
-      <p>
-        <strong style={{ color: 'var(--text-primary)' }}>Lineatur</strong> · setup complete
-      </p>
-    </main>
+    <AppShell
+        topBar={<p>TopBar</p>}
+        canvas={<p>Canvas</p>}
+        panel={<p>Panel</p>}
+        statusBar={<p>Status</p>}
+    />
   )
 }
 
