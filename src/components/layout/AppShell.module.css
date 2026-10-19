@@ -10,6 +10,11 @@
 }
 
 .topBar {
+    display: flex;
+    gap: var(--space-8);
+    padding-left: 12px;
+    padding-right: 12px;
+    align-items: center;
     grid-area: topBar; border-bottom: 1px solid var(--border-default);
 }
 

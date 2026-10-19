@@ -1,8 +1,10 @@
 .root {
     display: flex;
+    width: 256px;
+    height: fit-content;
     padding: var(--space-2);
     background: var(--bg-canvas);
-    border: 1px solid var(--border-default);
+    /*border: 1px solid var(--border-default);*/
     border-radius: var(--radius-md);
 }
 
@@ -10,7 +12,6 @@
     flex: 1;
     height: var(--size-control-sm);
     padding: 0 var(--space-12);
-    /* Transparent border keeps the size stable when a segment becomes active */
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
     background: transparent;
@@ -27,14 +28,12 @@
     color: var(--text-primary);
 }
 
-/* Styled via the ARIA state, so visuals and screen reader output can't drift apart */
 .segment[aria-checked="true"] {
     background: var(--bg-elevated);
     border-color: var(--border-default);
     color: var(--text-primary);
 }
 
-/* Segments sit edge to edge – the global 2px offset would overlap the neighbours */
 .segment:focus-visible {
     outline-offset: 0;
 }

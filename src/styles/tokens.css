@@ -5,8 +5,8 @@
  */
 :root {
   /* ── Color (dark mode) ───────────────────────────── */
-  --bg-app: #111113;
-  --bg-canvas: #0b0b0c;
+  --bg-app: #171717;
+  --bg-canvas: #0A0A0A;
   --bg-panel: #161618;
   --bg-elevated: #1f1f22;
   --bg-hover: rgb(255 255 255 / 0.06);
