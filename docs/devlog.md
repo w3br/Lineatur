@@ -83,6 +83,7 @@ Component sheet (slider row, segmented control, icon button and button states) a
 - Layout spacing belongs to the parent (`gap`), not to the component (`margin` / `padding`)
 - Native `<select>` and `<input type="color">` instead of custom widgets or `react-color` (unmaintained, always-open picker, no React 19 support): accessibility, keyboard and mobile pickers for free, zero bundle size
 - No open animation for the select for now – the native list is drawn by the OS. `appearance: base-select` is an option later as progressive enhancement
+- UI scaled to 120 %: at the Figma sizes (11–13 px text) the app felt too small to read. All size tokens moved from `px` to `rem` (Figma values kept as comments), and `html { font-size: 120% }` scales everything in one place. A percentage keeps the user's browser font-size setting working (WCAG 1.4.4); 1px borders stay in px so they stay crisp
 
 **Learnings**
 - Figma "hug contents" ≈ `width: fit-content`, "fill container" ≈ `flex: 1`, "spacing between items" = `gap`
