@@ -1,20 +1,22 @@
 .shell {
     display: grid;
-    grid-template-columns: 1fr var(--size-panel);
-    grid-template-rows: var(--size-topbar) 1fr var(--size-statusbar);
+    /* minmax(0, 1fr) instead of 1fr: a plain 1fr track never shrinks below its
+       content, so a long panel would push the status bar out of the window */
+    grid-template-columns: minmax(0, 1fr) var(--size-panel);
+    grid-template-rows: var(--size-topbar) minmax(0, 1fr) var(--size-statusbar);
     grid-template-areas:
         "topBar topBar"
         "canvas panel"
         "statusBar statusBar";
     height: 100%;
+    /* The window itself never scrolls – only the panel does */
+    overflow: hidden;
 }
 
 .topBar {
-    display: flex;
-    gap: var(--space-8);
     padding-inline: var(--space-12);
-    align-items: center;
-    grid-area: topBar; border-bottom: 1px solid var(--border-default);
+    grid-area: topBar;
+    border-bottom: 1px solid var(--border-default);
 }
 
 .canvas {
@@ -28,4 +30,13 @@
 
 .statusBar {
     grid-area: statusBar; border-top: 1px solid var(--border-default);
+    /* Center the content in the fixed 28px row */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: var(--space-12);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs-size);
+    line-height: var(--text-xs-line);
+    color: var(--text-tertiary);
 }

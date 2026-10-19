@@ -1,13 +1,17 @@
-// Placeholder – replace with the app shell (TopBar, Canvas, Panel, StatusBar).
 import {AppShell} from "./components/layout/AppShell.tsx";
+import {TopBar} from "./components/layout/TopBar.tsx";
 import {Button} from "./components/ui/Button.tsx";
 import {IconButton} from "./components/ui/IconButton.tsx";
-import {Download, Redo2} from "lucide-react";
+import {Download, Redo2, Undo2} from "lucide-react";
 import {SegmentedControl} from "./components/ui/SegmentedControl.tsx";
 import {SliderRow} from "./components/ui/SliderRow.tsx";
 import {useState} from "react";
+import styles from "./App.module.css";
 
 type Effect = "halftone" | "dithering" | "ascii"
+
+// Files in public/ are served from the base path (/Lineatur/ on GitHub Pages), not from /
+const logoUrl = `${import.meta.env.BASE_URL}favicon.svg`;
 
 function App() {
     // Temporary local state – moves to the Zustand store later.
@@ -17,23 +21,39 @@ function App() {
     return (
         <AppShell
             topBar={
-                <>
-                    <Button variant="primary" icon={<Download size={16}/>}>Export</Button>
-                    <IconButton icon={<Redo2 size={16}/>} label="Redo" aria-disabled={true}/>
-                    <SegmentedControl
-                        label="View mode"
-                        options={[
-                            {value: "halftone", label: "Halftone"},
-                            {value: "dithering", label: "Dithering"},
-                            {value: "ascii", label: "ASCII"},
-                        ]}
-                        value={effect}
-                        onChange={setEffect}
-                    />
-                </>
+                <TopBar
+                    start={
+                        <h1 className={styles.brand}>
+                            {/* Decorative: the heading text already names the app */}
+                            <img className={styles.logo} src={logoUrl} alt=""/>
+                            Lineatur
+                        </h1>
+                    }
+                    center={
+                        <SegmentedControl
+                            label="Effect"
+                            options={[
+                                {value: "halftone", label: "Halftone"},
+                                {value: "dithering", label: "Dithering"},
+                                {value: "ascii", label: "ASCII"},
+                            ]}
+                            value={effect}
+                            onChange={setEffect}
+                        />
+                    }
+                    end={
+                        <>
+                            <div className={styles.history}>
+                                <IconButton icon={<Undo2 size={16}/>} label="Undo" />
+                                <IconButton icon={<Redo2 size={16}/>} label="Redo" />
+                            </div>
+                            <Button variant="primary" icon={<Download size={16}/>}>Export</Button>
+                        </>
+                    }
+                />
             }
 
-            canvas={<p>Canvas</p>}
+            canvas={<p></p>}
 
             panel={
                 <SliderRow
@@ -46,7 +66,7 @@ function App() {
                 />
             }
 
-            statusBar={<p>Status</p>}
+            statusBar="Status"
         />
     )
 }

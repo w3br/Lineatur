@@ -1,0 +1,23 @@
+/* App-level composition: styles for content that App puts into the layout slots. */
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    /* <h1> comes with browser margins and its own font size */
+    margin: 0;
+    font-size: var(--text-h-sm-size);
+    line-height: var(--text-h-sm-line);
+    font-weight: var(--weight-semibold);
+}
+
+.logo {
+    width: var(--space-20);
+    height: var(--space-20);
+}
+
+/* Undo/redo sit closer together than the gap before Export */
+.history {
+    display: flex;
+    gap: var(--space-8);
+}
