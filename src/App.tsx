@@ -4,14 +4,20 @@ import {Button} from "./components/ui/Button.tsx";
 import {IconButton} from "./components/ui/IconButton.tsx";
 import {Download, Redo2, Undo2} from "lucide-react";
 import {SegmentedControl} from "./components/ui/SegmentedControl.tsx";
-import {SliderRow} from "./components/ui/SliderRow.tsx";
-import {useState} from "react";
+import {HalftonePanel} from "./components/panels/HalftonePanel.tsx";
+import {DitheringPanel} from "./components/panels/DitheringPanel.tsx";
+import {AsciiPanel} from "./components/panels/AsciiPanel.tsx";
+import {type ComponentType, useState} from "react";
 import styles from "./App.module.css";
-import {SwitchRow} from "./components/ui/SwitchRow.tsx";
-import {SelectRow} from "./components/ui/SelectRow.tsx";
-import {ColorRow} from "./components/ui/ColorRow.tsx";
 
 type Effect = "halftone" | "dithering" | "ascii"
+
+// One panel per effect – the effect switcher picks which one is shown
+const panels: Record<Effect, ComponentType> = {
+    halftone: HalftonePanel,
+    dithering: DitheringPanel,
+    ascii: AsciiPanel,
+}
 
 // Files in public/ are served from the base path (/Lineatur/ on GitHub Pages), not from /
 const logoUrl = `${import.meta.env.BASE_URL}favicon.svg`;
@@ -19,12 +25,9 @@ const logoUrl = `${import.meta.env.BASE_URL}favicon.svg`;
 function App() {
     // Temporary local state – moves to the Zustand store later.
     const [effect, setEffect] = useState<Effect>("halftone")
-    const [resolution, setResolution] = useState(100)
-    const [invert, setInvert] = useState(false)
-    const [color, setColor] = useState(false)
-    const [foreground, setForeground] = useState("#111113")
-    const [background, setBackground] = useState("#ffffff")
 
+    // Capitalized, so JSX treats it as a component: <Panel/>
+    const Panel = panels[effect]
 
     return (
         <AppShell
@@ -61,50 +64,9 @@ function App() {
                 />
             }
 
-            canvas={<p></p>}
+            canvas={null}
 
-            panel={
-                <>
-                    <SliderRow
-                        label="Resolution"
-                        value={resolution}
-                        min={1}
-                        max={200}
-                        step={1}
-                        onChange={setResolution}/>
-
-                    <SwitchRow
-                        label="Invert"
-                        checked={invert}
-                        onChange={setInvert}
-                    />
-                    <SwitchRow
-                        label="Color From Image"
-                        checked={color}
-                        onChange={setColor}
-                    />
-                    <SelectRow
-                        label="Effect"
-                        options={[
-                            {value: "halftone", label: "Halftone"},
-                            {value: "dithering", label: "Dithering"},
-                            {value: "ascii", label: "ASCII"},
-                        ]}
-                        value={effect}
-                        onChange={setEffect}
-                    />
-                    <ColorRow
-                        label="Foreground "
-                        value={foreground}
-                        onChange={setForeground}
-                    />
-                    <ColorRow
-                        label="Background "
-                        value={background}
-                        onChange={setBackground}
-                    />
-                </>
-            }
+            panel={<Panel/>}
 
             statusBar="Status"
         />

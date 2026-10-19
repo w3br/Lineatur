@@ -25,7 +25,8 @@
 
 .panel {
     grid-area: panel; background: var(--bg-panel); border-left: 1px solid var(--border-default); overflow-y: auto;
-    padding: var(--space-12);
+    /* Vertical spacing comes from the PanelSections */
+    padding-inline: var(--space-12);
 }
 
 .statusBar {

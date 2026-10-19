@@ -1,0 +1,24 @@
+/* The section owns the spacing between its rows – the rows themselves have no outer spacing */
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    padding-block: var(--space-16);
+}
+
+/* Divider only between sections, not above the first one */
+.section + .section {
+    border-top: 1px solid var(--border-default);
+}
+
+/* Figma text style ui/xs: 500, uppercase, +4 % letter spacing */
+.title {
+    /* <h2> comes with browser margins; the extra bottom margin adds to the gap */
+    margin: 0 0 var(--space-8);
+    font-size: var(--text-xs-size);
+    line-height: var(--text-xs-line);
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+}

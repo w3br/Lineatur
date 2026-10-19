@@ -2,8 +2,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: var(--space-4);
-    padding-bottom: var(--space-16);
+    /* Same row height as ColorRow and SelectRow; spacing comes from PanelSection */
+    height: var(--size-control-sm);
 }
 
 .label {

@@ -107,4 +107,20 @@ describe("SegmentedControl", () => {
 
         expect(document.activeElement).toBe(screen.getByRole("button", { name: "After" }));
     });
+
+    it("hides the label visually by default", () => {
+        render(<Harness />);
+
+        expect(screen.queryByText("Effect")).toBeNull();
+    });
+
+    it("shows a visible label that names the group with showLabel", () => {
+        render(<SegmentedControl label="Palette" showLabel options={options} value="halftone" onChange={() => {}} />);
+
+        const group = screen.getByRole("radiogroup", { name: "Palette" });
+        const label = screen.getByText("Palette");
+
+        expect(group.getAttribute("aria-labelledby")).toBe(label.id);
+        expect(group.hasAttribute("aria-label")).toBe(false);
+    });
 });

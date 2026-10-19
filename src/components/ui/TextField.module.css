@@ -1,0 +1,22 @@
+.field {
+    width: 100%;
+    height: var(--size-control-md);
+    padding-inline: var(--space-8);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm-size);
+    line-height: var(--text-sm-line);
+    color: var(--text-primary);
+    background: var(--bg-canvas);
+    /* Transparent border keeps the size stable when the hover border appears */
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.field:hover {
+    border-color: var(--border-strong);
+}
+
+.field::placeholder {
+    color: var(--text-tertiary);
+}

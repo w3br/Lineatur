@@ -1,17 +1,18 @@
-import {useRef} from "react";
+import {useId, useRef} from "react";
 import styles from "./SegmentedControl.module.css";
 import type {Option} from "./types.ts";
-
 
 type SegmentedControlProps<T extends string> = {
     label: string
     options: Option<T>[]
     value: T
     onChange: (value: T) => void
+    /** Show the label above the control. Otherwise it is only announced to screen readers. */
+    showLabel?: boolean
 }
 
-export function SegmentedControl<T extends string>({label, options, value, onChange}: SegmentedControlProps<T>) {
-
+export function SegmentedControl<T extends string>({label, options, value, onChange, showLabel = false}: SegmentedControlProps<T>) {
+    const labelId = useId();
     const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
     function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
@@ -43,8 +44,15 @@ export function SegmentedControl<T extends string>({label, options, value, onCha
         buttonRefs.current[nextIndex]?.focus();
     }
 
-    return (
-        <div role="radiogroup" aria-label={label} className={styles.root} onKeyDown={handleKeyDown}>
+    const group = (
+        <div
+            role="radiogroup"
+            // A visible label names the group via aria-labelledby, otherwise aria-label does
+            aria-label={showLabel ? undefined : label}
+            aria-labelledby={showLabel ? labelId : undefined}
+            className={styles.root}
+            onKeyDown={handleKeyDown}
+        >
             {options.map((option, index) => (
                 <button
                     className={styles.segment}
@@ -61,6 +69,16 @@ export function SegmentedControl<T extends string>({label, options, value, onCha
                     {option.label}
                 </button>
             ))}
+        </div>
+    )
+
+    if (!showLabel) return group;
+
+    // <label> only works for form elements, a radiogroup is named via aria-labelledby instead
+    return (
+        <div className={styles.field}>
+            <span id={labelId} className={styles.label}>{label}</span>
+            {group}
         </div>
     )
 }
