@@ -10,7 +10,7 @@ type SegmentedControlProps<T extends string> = {
     onChange: (value: T) => void
 }
 
-export function SegmentedControl<T extends string>({ label, options, value, onChange }: SegmentedControlProps<T>) {
+export function SegmentedControl<T extends string>({label, options, value, onChange}: SegmentedControlProps<T>) {
 
     const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -51,7 +51,9 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
                     key={option.value}
                     type="button"
                     role="radio"
-                    ref={(el) => {buttonRefs.current[index] = el}}
+                    ref={(el) => {
+                        buttonRefs.current[index] = el
+                    }}
                     aria-checked={option.value === value}
                     tabIndex={option.value === value ? 0 : -1}
                     onClick={() => onChange(option.value)}
