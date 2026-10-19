@@ -1,7 +1,7 @@
 import {useRef} from "react";
 import styles from "./SegmentedControl.module.css";
+import type {Option} from "./types.ts";
 
-type Option<T extends string> = { value: T; label: string }
 
 type SegmentedControlProps<T extends string> = {
     label: string

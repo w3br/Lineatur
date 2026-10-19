@@ -8,6 +8,7 @@ import {SliderRow} from "./components/ui/SliderRow.tsx";
 import {useState} from "react";
 import styles from "./App.module.css";
 import {SwitchRow} from "./components/ui/SwitchRow.tsx";
+import {SelectRow} from "./components/ui/SelectRow.tsx";
 
 type Effect = "halftone" | "dithering" | "ascii"
 
@@ -68,6 +69,7 @@ function App() {
                     max={200}
                     step={1}
                     onChange={setResolution}/>
+
                     <SwitchRow
                         label="Invert"
                         checked={invert}
@@ -77,6 +79,16 @@ function App() {
                         label="Color From Image"
                         checked={color}
                         onChange={setColor}
+                    />
+                    <SelectRow
+                        label="Effect"
+                        options={[
+                            {value: "halftone", label: "Halftone"},
+                            {value: "dithering", label: "Dithering"},
+                            {value: "ascii", label: "ASCII"},
+                        ]}
+                        value={effect}
+                        onChange={setEffect}
                     />
                 </>
             }

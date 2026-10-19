@@ -80,4 +80,7 @@
   --switch-width: 28px;
   --switch-height: 16px;
   --switch-thumb-size: 12px;
+
+  /* ── Select ──────────────────────────────────────── */
+  --select-width: 120px;
 }
