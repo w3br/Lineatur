@@ -1,0 +1,72 @@
+.root {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: var(--size-control-sm);
+}
+
+.label {
+    font-size: var(--text-sm-size);
+    line-height: var(--text-sm-line);
+    color: var(--text-secondary);
+}
+
+.field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.swatch {
+    appearance: none;
+    width: var(--size-icon);
+    height: var(--size-icon);
+    padding: 0;
+    /* Keeps dark colors like #111113 visible on the dark panel */
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: pointer;
+    transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.swatch:hover {
+    border-color: var(--text-tertiary);
+}
+
+/* Chrome / Safari: wrapper around the color area adds inner padding */
+.swatch::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+/* Inner radius = outer radius minus the 1px border, so the corners don't leave gaps */
+.swatch::-webkit-color-swatch {
+    border: none;
+    border-radius: calc(var(--radius-sm) - 1px);
+}
+
+.swatch::-moz-color-swatch {
+    border: none;
+    border-radius: calc(var(--radius-sm) - 1px);
+}
+
+.hex {
+    /* In a monospace font 1ch is exactly one character, so 7ch fits "#RRGGBB" */
+    width: calc(7ch + 2 * var(--space-4) + 2px);
+    height: var(--space-24);
+    padding-inline: var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm-size);
+    line-height: var(--text-sm-line);
+    color: var(--text-primary);
+    background: transparent;
+    /* Transparent border keeps the size stable when the hover border appears */
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+/* Hint that the value is editable */
+.hex:hover {
+    border-color: var(--border-strong);
+}

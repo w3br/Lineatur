@@ -9,6 +9,7 @@ import {useState} from "react";
 import styles from "./App.module.css";
 import {SwitchRow} from "./components/ui/SwitchRow.tsx";
 import {SelectRow} from "./components/ui/SelectRow.tsx";
+import {ColorRow} from "./components/ui/ColorRow.tsx";
 
 type Effect = "halftone" | "dithering" | "ascii"
 
@@ -21,6 +22,8 @@ function App() {
     const [resolution, setResolution] = useState(100)
     const [invert, setInvert] = useState(false)
     const [color, setColor] = useState(false)
+    const [foreground, setForeground] = useState("#111113")
+    const [background, setBackground] = useState("#ffffff")
 
 
     return (
@@ -49,8 +52,8 @@ function App() {
                     end={
                         <>
                             <div className={styles.history}>
-                                <IconButton icon={<Undo2 size={16}/>} label="Undo" />
-                                <IconButton icon={<Redo2 size={16}/>} label="Redo" />
+                                <IconButton icon={<Undo2 size={16}/>} label="Undo"/>
+                                <IconButton icon={<Redo2 size={16}/>} label="Redo"/>
                             </div>
                             <Button variant="primary" icon={<Download size={16}/>}>Export</Button>
                         </>
@@ -63,12 +66,12 @@ function App() {
             panel={
                 <>
                     <SliderRow
-                    label="Resolution"
-                    value={resolution}
-                    min={1}
-                    max={200}
-                    step={1}
-                    onChange={setResolution}/>
+                        label="Resolution"
+                        value={resolution}
+                        min={1}
+                        max={200}
+                        step={1}
+                        onChange={setResolution}/>
 
                     <SwitchRow
                         label="Invert"
@@ -89,6 +92,16 @@ function App() {
                         ]}
                         value={effect}
                         onChange={setEffect}
+                    />
+                    <ColorRow
+                        label="Foreground "
+                        value={foreground}
+                        onChange={setForeground}
+                    />
+                    <ColorRow
+                        label="Background "
+                        value={background}
+                        onChange={setBackground}
                     />
                 </>
             }
