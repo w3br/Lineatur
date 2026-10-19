@@ -30,6 +30,25 @@
 - Figma variables mapped 1:1 to CSS custom properties in `tokens.css`; components only use `var(--…)`
 - `global.css`: box-sizing reset, form controls inherit the font, global `:focus-visible` ring, reduced motion
 
+**Figma prototypes**
+
+The four v1 screens: empty state, Halftone, Dithering and ASCII. The panels share one structure (sections with slider, select, switch and color rows), so each effect only differs in its controls.
+
+<p>
+  <img src="design/figma-prototypes/D01%20-%20Empty.png" alt="D01 – empty state with drop zone" width="49%">
+  <img src="design/figma-prototypes/D02%20-%20Halftone.png" alt="D02 – Halftone panel" width="49%">
+  <img src="design/figma-prototypes/D03%20-%20Dithering.png" alt="D03 – Dithering panel" width="49%">
+  <img src="design/figma-prototypes/D04%20-%20ASCII.png" alt="D04 – ASCII panel" width="49%">
+</p>
+
+Component sheet (slider row, segmented control, icon button and button states) and work in progress in Figma:
+
+<p>
+  <img src="design/figma-prototypes/Components.png" alt="Component sheet with all states" width="32%">
+  <img src="design/figma-prototypes/Day1_FigmaComponents.png" alt="Figma components page" width="32%">
+  <img src="design/figma-prototypes/Day1_FigmaDesktopPage.png" alt="Figma desktop page with the app shell in auto layout" width="32%">
+</p>
+
 **App shell**
 - `AppShell` as CSS grid with named areas: top bar, canvas, panel, status bar
 - Top bar and status bar always stay visible, only the panel scrolls: rows use `minmax(0, 1fr)` instead of `1fr`, because a plain `1fr` track never shrinks below its content
