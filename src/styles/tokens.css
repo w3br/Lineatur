@@ -75,4 +75,9 @@
   --duration-fast: 120ms;
   --duration-base: 180ms;
   --ease-out: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ── Switch ──────────────────────────────────────── */
+  --switch-width: 28px;
+  --switch-height: 16px;
+  --switch-thumb-size: 12px;
 }

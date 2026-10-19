@@ -7,6 +7,7 @@ import {SegmentedControl} from "./components/ui/SegmentedControl.tsx";
 import {SliderRow} from "./components/ui/SliderRow.tsx";
 import {useState} from "react";
 import styles from "./App.module.css";
+import {SwitchRow} from "./components/ui/SwitchRow.tsx";
 
 type Effect = "halftone" | "dithering" | "ascii"
 
@@ -17,6 +18,9 @@ function App() {
     // Temporary local state – moves to the Zustand store later.
     const [effect, setEffect] = useState<Effect>("halftone")
     const [resolution, setResolution] = useState(100)
+    const [invert, setInvert] = useState(false)
+    const [color, setColor] = useState(false)
+
 
     return (
         <AppShell
@@ -56,14 +60,25 @@ function App() {
             canvas={<p></p>}
 
             panel={
-                <SliderRow
+                <>
+                    <SliderRow
                     label="Resolution"
                     value={resolution}
                     min={1}
                     max={200}
                     step={1}
-                    onChange={setResolution}
-                />
+                    onChange={setResolution}/>
+                    <SwitchRow
+                        label="Invert"
+                        checked={invert}
+                        onChange={setInvert}
+                    />
+                    <SwitchRow
+                        label="Color From Image"
+                        checked={color}
+                        onChange={setColor}
+                    />
+                </>
             }
 
             statusBar="Status"
