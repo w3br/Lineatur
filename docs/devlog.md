@@ -23,7 +23,7 @@
 - Main screen (Halftone), Dithering and ASCII variants, empty state
 - Start development: Vite + React + TypeScript, tokens to CSS custom properties
 
-## Day 1 – Setup, app shell and first components (2026-10-14 – 2026-10-19)
+## Day 1 – Setup, app shell and all panel components (2026-10-14 – 2026-10-19)
 
 **Setup**
 - Vite + React + TypeScript, oxlint, Vitest; Figma screens for v1 added to `docs/design/`
@@ -60,22 +60,45 @@ Component sheet (slider row, segmented control, icon button and button states) a
 - `SegmentedControl`: ARIA radiogroup with roving tabindex – one tab stop, arrow keys / Home / End move selection and focus, wraps around at both ends. Styled via `aria-checked`, so visuals and screen reader output can't drift apart
 - `SliderRow`: custom-styled `<input type="range">` (WebKit + Firefox pseudo-elements), filled track via a `--fill` CSS variable set from React (Chrome has no progress pseudo-element)
 - Editable value field in `SliderRow`: typing is kept as a local draft and committed on Enter / blur, clamped to min/max, comma accepted as decimal separator, Escape or invalid input reverts
+- `SwitchRow`: `<button role="switch">` with `aria-checked`; the `<label>` points at the button, so clicking the text toggles too. Keyboard support comes free with the native button
+- `SelectRow`: native `<select>` with `appearance: none` and a Lucide chevron laid over it (`position: absolute`, `pointer-events: none`); generic over the option values like `SegmentedControl`, shared `Option<T>` type in `types.ts`
+- `ColorRow`: native `<input type="color">` as swatch (WebKit + Firefox swatch pseudo-elements) plus an editable hex field. `normalizeHex` in `lib/color.ts` accepts `#FF8800`, `ff8800` and `#f80` and returns `null` for anything else, so invalid input falls back to the old value
+- `SegmentedControl` got an optional visible label (`showLabel`) that names the group via `aria-labelledby`
+- `PanelSection`: `<section>` named by its `<h2>` title, divider only between sections (`.section + .section`)
+- `TextField`: full-width mono input for the ASCII character set
+
+**Panels**
+- `HalftonePanel`, `DitheringPanel` and `AsciiPanel` assembled from the components, matching the Figma screens
+- `App` picks the panel from a `Record<Effect, ComponentType>` map – TypeScript complains if a new effect has no panel
+- ASCII: choosing a preset fills the character field, editing the field switches the select to "Custom"
+- Rows have no outer spacing anymore; `PanelSection` sets the gap, all single-line rows share the 28 px control height
 
 **Tests**
-- Testing Library + jsdom; 18 tests for `SegmentedControl` and `SliderRow` (keyboard navigation, roving tabindex, clamping, invalid input)
+- Testing Library + jsdom; 64 tests across all components and `normalizeHex` (keyboard navigation, roving tabindex, clamping, label wiring, hex parsing, invalid input)
 
 **Decisions**
 - Effect switcher moved from the panel into the top bar (as in the Figma screens) – it switches the whole tool, not a single setting
-- Controlled components only; state lives in `App` for now and moves to the Zustand store later
+- Controlled components only; state lives in the panels for now and moves to the Zustand store later
 - Value field is `type="text"` with `inputMode="decimal"` instead of `type="number"`: no spinners, no accidental scroll-wheel changes, full control over parsing
-- Layout spacing belongs to the parent (`gap`), not to the component (`margin`)
+- Layout spacing belongs to the parent (`gap`), not to the component (`margin` / `padding`)
+- Native `<select>` and `<input type="color">` instead of custom widgets or `react-color` (unmaintained, always-open picker, no React 19 support): accessibility, keyboard and mobile pickers for free, zero bundle size
+- No open animation for the select for now – the native list is drawn by the OS. `appearance: base-select` is an option later as progressive enhancement
 
 **Learnings**
 - Figma "hug contents" ≈ `width: fit-content`, "fill container" ≈ `flex: 1`, "spacing between items" = `gap`
 - `transition` belongs in the base state, not in `:hover` – otherwise it only animates one way
 - `preventDefault()` only for handled keys, otherwise Tab and Space break
 - Browser default margins on `<p>` / `<h1>` break fixed-height bars
+- Controlled components only show what they get: two switches bound to the same state always toggle together – one state per setting
+- `position: absolute` needs a positioned ancestor (`position: relative`), otherwise it is placed relative to the page
+- Lucide icons are strokes with `currentColor` – color them with `color`, not `fill`
+- `<label htmlFor>` only works for form elements; groups like a radiogroup are named with `aria-labelledby`
+- With `verbatimModuleSyntax`, type-only imports need `import type`
+
+**Open issues**
+- Panel state resets when switching effects, because each panel is unmounted – solved by the store
 
 **Next**
-- Panel components: `SwitchRow`, `SelectRow`, `ColorRow`, visible label for `SegmentedControl`, `PanelSection`, `TextField`
-- Assemble the Halftone, Dithering and ASCII panels
+- Zustand store for effect and parameters (incl. undo/redo history)
+- Image upload, empty state (D01) and canvas preview
+- First effect implementation and the worker pipeline
