@@ -11,7 +11,8 @@ import {type ComponentType} from "react";
 import styles from "./App.module.css";
 import {useEditorStore} from "./store/useEditorStore.ts";
 import type {Effect} from "./store/params.ts";
-import {DropZone} from "./components/canvas/DropZone.tsx";
+import {CanvasArea} from "./components/canvas/CanvasArea.tsx";
+import {StatusBar} from "./components/layout/StatusBar.tsx";
 
 // One panel per effect – the effect switcher picks which one is shown
 const panels: Record<Effect, ComponentType> = {
@@ -26,6 +27,7 @@ const logoUrl = `${import.meta.env.BASE_URL}favicon.svg`;
 function App() {
     const effect = useEditorStore(state => state.effect)
     const setEffect = useEditorStore(state => state.setEffect)
+    const hasImage = useEditorStore(state => state.image !== null)
 
     // Capitalized, so JSX treats it as a component: <Panel/>
     const Panel = panels[effect]
@@ -59,17 +61,17 @@ function App() {
                                 <IconButton icon={<Undo2 size={16}/>} label="Undo"/>
                                 <IconButton icon={<Redo2 size={16}/>} label="Redo"/>
                             </div>
-                            <Button variant="primary" icon={<Download size={16}/>}>Export</Button>
+                            <Button variant="primary" icon={<Download size={16}/>} disabled={!hasImage}>Export</Button>
                         </>
                     }
                 />
             }
 
-            canvas={<DropZone onFile={(file) => console.log("File dropped:", file)}/>}
+            canvas={<CanvasArea/>}
 
             panel={<Panel/>}
 
-            statusBar="Status"
+            statusBar={<StatusBar/>}
         />
     )
 }
