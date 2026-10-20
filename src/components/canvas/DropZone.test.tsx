@@ -1,24 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DropZone } from "./DropZone.tsx";
 
 const png = new File(["png"], "photo.png", { type: "image/png" });
 
-function setup() {
+// Drag & drop and paste live in hooks now (src/hooks) and are tested there
+function setup(isDragging = false) {
     const onFile = vi.fn();
-    const { container, unmount } = render(<DropZone onFile={onFile} />);
+    const { container } = render(<DropZone onFile={onFile} isDragging={isDragging} />);
     // The file input is hidden and has no role, so it's found via the DOM
     const input = container.querySelector<HTMLInputElement>('input[type="file"]')!;
     const zone = container.firstElementChild as HTMLElement;
-    return { onFile, input, zone, unmount };
-}
-
-// jsdom's ClipboardEvent has no clipboardData, so it's attached by hand
-function paste(files: File[]) {
-    const event = new Event("paste", { bubbles: true });
-    Object.defineProperty(event, "clipboardData", { value: { files } });
-    window.dispatchEvent(event);
+    return { onFile, input, zone };
 }
 
 afterEach(() => {
@@ -33,6 +27,12 @@ describe("DropZone", () => {
         expect(screen.getByRole("heading", { name: "Choose or drop an image" })).toBeTruthy();
         expect(screen.getByText("PNG, JPEG or WebP")).toBeTruthy();
         expect(screen.getByRole("button", { name: "Choose image" })).toBeTruthy();
+    });
+
+    it("reflects the dragging state from its parent", () => {
+        expect(setup(false).zone.dataset.dragging).toBe("false");
+        cleanup();
+        expect(setup(true).zone.dataset.dragging).toBe("true");
     });
 
     describe("file picker", () => {
@@ -75,65 +75,6 @@ describe("DropZone", () => {
             await user.upload(input, png);
 
             expect(onFile).toHaveBeenCalledTimes(2);
-        });
-    });
-
-    describe("drag and drop", () => {
-        it("highlights while dragging and resets on leave", () => {
-            const { zone } = setup();
-
-            fireEvent.dragOver(zone);
-            expect(zone.dataset.dragging).toBe("true");
-
-            fireEvent.dragLeave(zone);
-            expect(zone.dataset.dragging).toBe("false");
-        });
-
-        it("passes the first dropped file to onFile and resets the highlight", () => {
-            const { onFile, zone } = setup();
-            const second = new File(["jpg"], "second.jpg", { type: "image/jpeg" });
-
-            fireEvent.dragOver(zone);
-            fireEvent.drop(zone, { dataTransfer: { files: [png, second] } });
-
-            expect(onFile).toHaveBeenCalledExactlyOnceWith(png);
-            expect(zone.dataset.dragging).toBe("false");
-        });
-
-        it("ignores a drop without files", () => {
-            const { onFile, zone } = setup();
-
-            fireEvent.drop(zone, { dataTransfer: { files: [] } });
-
-            expect(onFile).not.toHaveBeenCalled();
-        });
-    });
-
-    describe("paste", () => {
-        it("passes a pasted image to onFile", () => {
-            const { onFile } = setup();
-
-            paste([png]);
-
-            expect(onFile).toHaveBeenCalledExactlyOnceWith(png);
-        });
-
-        it("ignores pasted text", () => {
-            const { onFile } = setup();
-
-            // Plain text in the clipboard comes with an empty file list
-            paste([]);
-
-            expect(onFile).not.toHaveBeenCalled();
-        });
-
-        it("stops listening after unmount", () => {
-            const { onFile, unmount } = setup();
-
-            unmount();
-            paste([png]);
-
-            expect(onFile).not.toHaveBeenCalled();
         });
     });
 });

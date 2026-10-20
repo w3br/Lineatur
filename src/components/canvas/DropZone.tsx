@@ -1,31 +1,14 @@
-import {type ChangeEvent, type DragEvent, useRef, useState} from 'react'
+import {type ChangeEvent,  useRef} from 'react'
 import {ImagePlus} from "lucide-react";
 import styles from "./DropZone.module.css";
 
 type DropZoneProps = {
     onFile: (file: File) => void
+    isDragging: boolean
 }
 
-export function DropZone({onFile}: DropZoneProps) {
-    const [isDragging, setIsDragging] = useState(false)
+export function DropZone({onFile, isDragging}: DropZoneProps) {
     const inputRef = useRef<HTMLInputElement>(null)
-
-    // Drag & drop
-    function handleDragOver(event: DragEvent<HTMLDivElement>) {
-        event.preventDefault() // without this the browser opens the file itself
-        setIsDragging(true)
-    }
-
-    function handleDragLeave() {
-        setIsDragging(false)
-    }
-
-    function handleDrop(event: DragEvent<HTMLDivElement>) {
-        event.preventDefault()
-        setIsDragging(false)
-        const file = event.dataTransfer.files[0]
-        if (file) onFile(file)
-    }
 
     // File picker
     function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
@@ -35,8 +18,7 @@ export function DropZone({onFile}: DropZoneProps) {
     }
 
     return (
-        <div className={styles.dropZone} data-dragging={isDragging} onDragOver={handleDragOver}
-             onDragLeave={handleDragLeave} onDrop={handleDrop}>
+        <div className={styles.dropZone} data-dragging={(isDragging)}>
             <ImagePlus className={styles.icon} aria-hidden={true}/>
             <h2 className={styles.heading}>Choose or drop an image</h2>
             <p className={styles.hint}>PNG, JPEG or WebP</p>

@@ -20,7 +20,7 @@
 }
 
 .canvas {
-    display: grid; place-items: center; height: 100%;
+    height: 100%;
     grid-area: canvas; background: var(--bg-canvas); overflow: hidden;
     padding: var(--space-32);
 }
