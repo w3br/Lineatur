@@ -2,6 +2,7 @@ import {useEditorStore} from "../../store/useEditorStore.ts";
 import {ImageCanvas} from "./ImageCanvas.tsx";
 import {loadImage} from "../../lib/loadImage.ts";
 import {DropZone} from "./DropZone.tsx";
+import {usePasteFile} from "../../hooks/usePasteFile.ts";
 
 export function CanvasArea() {
     const image = useEditorStore((s) => s.image)
@@ -14,6 +15,8 @@ export function CanvasArea() {
             console.error(error) // later: show a toast
         }
     }
+
+    usePasteFile(handleFile)
 
     return image ? <ImageCanvas bitmap={image.preview} label={`Preview of ${image.name}`} /> : <DropZone onFile={handleFile} />
 }

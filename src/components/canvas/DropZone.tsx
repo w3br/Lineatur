@@ -1,4 +1,4 @@
-import {type ChangeEvent, type DragEvent, useEffect, useRef, useState} from 'react'
+import {type ChangeEvent, type DragEvent, useRef, useState} from 'react'
 import {ImagePlus} from "lucide-react";
 import styles from "./DropZone.module.css";
 
@@ -33,17 +33,6 @@ export function DropZone({onFile}: DropZoneProps) {
         if (file) onFile(file)
         event.target.value = '' // allows choosing the same file again
     }
-
-    // Paste (Ctrl+V) – listens on the whole window, so it needs cleanup
-    useEffect(() => {
-        function handlePaste(event: ClipboardEvent) {
-            const file = event.clipboardData?.files[0]
-            if (file) onFile(file)
-        }
-
-        window.addEventListener('paste', handlePaste)
-        return () => window.removeEventListener('paste', handlePaste)
-    }, [onFile])
 
     return (
         <div className={styles.dropZone} data-dragging={isDragging} onDragOver={handleDragOver}
