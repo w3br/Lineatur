@@ -1,27 +1,19 @@
-import {useState} from "react";
 import {PanelSection} from "../layout/PanelSection.tsx";
 import {SliderRow} from "../ui/SliderRow.tsx";
 import {SegmentedControl} from "../ui/SegmentedControl.tsx";
 import {ColorRow} from "../ui/ColorRow.tsx";
+import {useEditorStore} from "../../store/useEditorStore.ts";
 
-type Shape = "circle" | "square" | "line"
 
 export function HalftonePanel() {
-    // Temporary local state – moves to the Zustand store later.
-    const [gridSize, setGridSize] = useState(8)
-    const [angle, setAngle] = useState(45)
-    const [shape, setShape] = useState<Shape>("circle")
-    const [contrast, setContrast] = useState(0)
-    const [brightness, setBrightness] = useState(0)
-    const [noise, setNoise] = useState(20)
-    const [foreground, setForeground] = useState("#111113")
-    const [background, setBackground] = useState("#ffffff")
+    const params = useEditorStore(state => state.halftone)
+    const update = useEditorStore(state => state.updateHalftone)
 
     return (
         <>
             <PanelSection title="Grid">
-                <SliderRow label="Grid size" value={gridSize} min={2} max={40} onChange={setGridSize}/>
-                <SliderRow label="Angle" value={angle} min={0} max={180} onChange={setAngle}/>
+                <SliderRow label="Grid size" value={params.gridSize} min={2} max={40} onChange={(gridSize) => update({ gridSize })}/>
+                <SliderRow label="Angle" value={params.angle} min={0} max={180} onChange={(angle) => update({ angle })}/>
                 <SegmentedControl
                     label="Dot shape"
                     options={[
@@ -29,20 +21,20 @@ export function HalftonePanel() {
                         {value: "square", label: "Square"},
                         {value: "line", label: "Line"},
                     ]}
-                    value={shape}
-                    onChange={setShape}
+                    value={params.shape}
+                    onChange={(shape) => update({ shape })}
                 />
             </PanelSection>
 
             <PanelSection title="Tone">
-                <SliderRow label="Contrast" value={contrast} min={-100} max={100} onChange={setContrast}/>
-                <SliderRow label="Brightness" value={brightness} min={-100} max={100} onChange={setBrightness}/>
-                <SliderRow label="Noise" value={noise} min={0} max={100} onChange={setNoise}/>
+                <SliderRow label="Contrast" value={params.contrast} min={-100} max={100} onChange={(contrast) => update({ contrast })}/>
+                <SliderRow label="Brightness" value={params.brightness} min={-100} max={100} onChange={(brightness) => update({ brightness })}/>
+                <SliderRow label="Noise" value={params.noise} min={0} max={100} onChange={(noise) => update({ noise })}/>
             </PanelSection>
 
             <PanelSection title="Colors">
-                <ColorRow label="Foreground" value={foreground} onChange={setForeground}/>
-                <ColorRow label="Background" value={background} onChange={setBackground}/>
+                <ColorRow label="Foreground" value={params.foreground} onChange={(foreground) => update({ foreground })}/>
+                <ColorRow label="Background" value={params.background} onChange={(background) => update({ background })}/>
             </PanelSection>
         </>
     )

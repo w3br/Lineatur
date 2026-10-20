@@ -7,10 +7,10 @@ import {SegmentedControl} from "./components/ui/SegmentedControl.tsx";
 import {HalftonePanel} from "./components/panels/HalftonePanel.tsx";
 import {DitheringPanel} from "./components/panels/DitheringPanel.tsx";
 import {AsciiPanel} from "./components/panels/AsciiPanel.tsx";
-import {type ComponentType, useState} from "react";
+import {type ComponentType} from "react";
 import styles from "./App.module.css";
-
-type Effect = "halftone" | "dithering" | "ascii"
+import {useEditorStore} from "./store/useEditorStore.ts";
+import type {Effect} from "./store/params.ts";
 
 // One panel per effect – the effect switcher picks which one is shown
 const panels: Record<Effect, ComponentType> = {
@@ -23,8 +23,8 @@ const panels: Record<Effect, ComponentType> = {
 const logoUrl = `${import.meta.env.BASE_URL}favicon.svg`;
 
 function App() {
-    // Temporary local state – moves to the Zustand store later.
-    const [effect, setEffect] = useState<Effect>("halftone")
+    const effect = useEditorStore(state => state.effect)
+    const setEffect = useEditorStore(state => state.setEffect)
 
     // Capitalized, so JSX treats it as a component: <Panel/>
     const Panel = panels[effect]
