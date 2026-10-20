@@ -103,3 +103,60 @@ Component sheet (slider row, segmented control, icon button and button states) a
 - Zustand store for effect and parameters (incl. undo/redo history)
 - Image upload, empty state (D01) and canvas preview
 - First effect implementation and the worker pipeline
+
+## Day 2 – Store and image loading (2026-10-20)
+
+**Store**
+- Zustand store (`useEditorStore`) holds the active effect, one params object per effect and the loaded image. Panels read their slice with a selector, so a slider only re-renders the components that use it
+- Param types and defaults live in `store/params.ts`. Union values are stable IDs (`"floyd-steinberg"`, `"1bit"`), the display labels stay in the UI – a typo in an ID is now a type error instead of a silently empty select
+- `updateHalftone` / `updateDithering` / `updateAscii` take a `Partial<…>` patch and merge it into a new object (`{...state.halftone, ...patch}`). `set` replaces, `update` merges – the name says which one
+- One user action = one update: the ASCII preset/characters logic sends both fields in a single patch, so undo won't have to step through half-finished states later
+- Fixes the Day 1 bug: params survive switching effects, because they no longer live in the unmounted panel
+
+**Image loading**
+- `lib/loadImage.ts`: `createImageBitmap(file)` decodes the file directly (faster than `<img>` + `onload`, and an `ImageBitmap` can be transferred to a worker later). Only PNG, JPEG and WebP are accepted
+- Two versions per image: `original` in full resolution for export, `preview` with at most 1200 px on the long side for the live preview. A 6000 × 4000 photo is shown from a 1200 × 800 bitmap – the main performance decision of the project
+- Three ways to load an image – drop, file picker, paste (Ctrl/Cmd+V) – all end in one `handleFile` in `CanvasArea`. Unsupported files are logged and the current image stays
+
+**Components**
+- `DropZone` (empty state D01): icon, heading, accepted formats, "Choose image" button
+- `ImageCanvas`: draws the bitmap in a `useEffect` after render; `canvas.width/height` set the pixel size (and clear the canvas), CSS `max-width/max-height` set the display size, so the aspect ratio is kept
+- `CanvasArea` switches between drop zone and canvas and owns drop + paste for both states, so an image can be replaced by dropping or pasting a new one
+- `StatusBar` shows `2400 × 1600 · photo.jpg` or "No image loaded"; export is disabled until an image is loaded
+
+**Hooks**
+- `usePasteFile` and `useFileDrop` in `src/hooks`. Paste and drop first lived in `DropZone`, but the drop zone is unmounted once an image is shown – and its listeners with it. In hooks, the logic runs as long as `CanvasArea` is mounted, which is always
+- `useFileDrop` returns `{isDragging, handlers}`; the handler names match the React props, so they can be spread onto any element with `{...handlers}`
+- `DropZone` became a presentational component: it gets `isDragging` as a prop instead of tracking drag state itself
+
+**Accessibility**
+- File picker: the template's `<label htmlFor>` wasn't focusable. Replaced by a `<button>` that calls `inputRef.current?.click()` on the hidden input – reachable with Tab, triggered with Enter/Space
+- `<canvas>` is invisible to screen readers, so it gets `role="img"` and `aria-label="Preview of photo.jpg"` (WCAG 1.1.1 Non-text Content)
+
+**Tests**
+- 101 tests: store (immutability, defaults never mutated, params survive effect switch), `DropZone`, `ImageCanvas` (with a fake `getContext`), both hooks via `renderHook`, `CanvasArea` with a mocked `loadImage` (replace by drop/paste, invalid file keeps the image)
+- Checked in a real browser: small, huge and portrait images, window resize, replacing, PDF drop
+
+**Decisions**
+- Generic UI components get their state through props; only container components (`App`, `CanvasArea`) read the store. The first version of the export button read the store inside `Button` – which would have disabled every button in the app
+- Drag feedback: the drop zone shows its own accent border; with an image, the wrapper shows a dashed outline (only then, so the two never appear together). `outline` instead of `border`, so the image doesn't shift by 2 px while dragging
+
+**Learnings**
+- Unmounting a component throws away its `useState` – state that has to survive belongs in a store (🅰️ like a field in a component inside `@if`)
+- Never mutate store state (`state.halftone.gridSize = 12`) – Zustand and React only notice a new reference
+- `useEffect` cleanup = subscribe + unsubscribe in one place. Without it, every paste would load the image once more per mounted listener
+- Functions in a component body are new objects on every render. As a dependency (`[onFile]`), they re-run the effect – harmless here because `CanvasArea` only renders when the image changes; `useCallback` or `useEffectEvent` when it matters
+- Grid items default to `min-height: auto` (= content height), which beats `max-height: 100%`. A portrait image overflowed until `min-height: 0` was added
+- The well-known drag flicker (`dragleave` fires when moving onto a child element) doesn't show here: `dragover` fires continuously and sets the state back before the next frame. It hits implementations that set it in `dragenter`, which fires only once
+- Template literals need backticks – `'Preview of ${image.name}'` renders the placeholder literally
+- `function` declarations are hoisted, so a hook can receive `handleFile` before its line – it works, but reads backwards
+
+**Open issues**
+- No way to replace an image without dragging or pasting – a "Replace image" button is needed (WCAG 2.2 2.5.7 Dragging Movements)
+- Old `ImageBitmap`s are never released – `bitmap.close()` on replace (note: for small images `preview === original`)
+- Two files loaded in quick succession: the slower decode can win. Not fixed yet
+- Test for `isSupportedImage`
+
+**Next**
+- Finish Day 2: replace button, `bitmap.close()`, `isSupportedImage` test
+- Day 3: first effect – grayscale and threshold on `ImageData`, the base for all dithering algorithms
