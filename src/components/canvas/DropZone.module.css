@@ -1,0 +1,54 @@
+.dropZone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border: 1px dashed var(--border-default);
+    gap: var(--space-12);
+    border-radius: var(--radius-sm);
+    padding: var(--space-8);
+}
+
+.dropZone[data-dragging='true'] {
+    border-color: var(--accent-default);
+}
+
+.heading {
+    font-size: var(--text-h-lg-size);
+    line-height: var(--text-h-lg-line);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.icon {
+    width: var(--size-control-md);
+    height: var(--size-control-md);
+    stroke: var(--text-secondary);
+    stroke-width: 1px;
+    margin: 0;
+}
+
+.hint {
+    font-size: var(--text-xs-size);
+    line-height: var(--text-xs-line);
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+.button {
+    font-size: var(--text-sm-size);
+    line-height: var(--text-sm-line);
+    color: var(--text-primary);
+    background-color: var(--bg-hover);
+    border: 1px var(--border-default) solid;
+    border-radius: var(--radius-sm);
+    padding: var(--space-4) var(--space-8);
+    cursor: pointer;
+    transition: background-color var(--duration-base);
+}
+
+.button:hover {
+    background-color: var(--bg-elevated);
+}

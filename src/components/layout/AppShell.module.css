@@ -21,6 +21,7 @@
 
 .canvas {
     grid-area: canvas; background: var(--bg-canvas); overflow: hidden;
+    padding: var(--space-32);
 }
 
 .panel {

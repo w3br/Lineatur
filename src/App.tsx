@@ -11,6 +11,7 @@ import {type ComponentType} from "react";
 import styles from "./App.module.css";
 import {useEditorStore} from "./store/useEditorStore.ts";
 import type {Effect} from "./store/params.ts";
+import {DropZone} from "./components/canvas/DropZone.tsx";
 
 // One panel per effect – the effect switcher picks which one is shown
 const panels: Record<Effect, ComponentType> = {
@@ -64,7 +65,7 @@ function App() {
                 />
             }
 
-            canvas={null}
+            canvas={<DropZone onFile={(file) => console.log("File dropped:", file)}/>}
 
             panel={<Panel/>}
 
