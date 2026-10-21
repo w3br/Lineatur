@@ -1,0 +1,2 @@
+# Text styles are kept as size/line-height pairs on one line with an aligned comment – Prettier would split them
+src/styles/tokens.css
