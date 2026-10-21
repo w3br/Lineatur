@@ -168,3 +168,71 @@ Component sheet (slider row, segmented control, icon button and button states) a
 
 **Next**
 - Day 3: first effect – grayscale and threshold on `ImageData`, the base for all dithering algorithms
+
+## Day 3 – First effect: dithering (2026-10-21 – 2026-10-22)
+
+**Effects as pure functions**
+- Everything in `src/effects/` is plain TypeScript without React: input in, result out. Easy to unit-test, and it can move into a Web Worker unchanged
+- Data flow: `ImageData` (RGBA) → `toGray` → `Float32Array` (one value per pixel) → dithering → `Uint8ClampedArray` (0 or 255) → colors → `ImageData`
+- The gray buffer is a `Float32Array`, because error diffusion needs values like `-23.4` or `281.7` that a clamped byte array would cut off
+
+**Tone (`effects/tone.ts`)**
+- `luminance`: weighted `0.299 R + 0.587 G + 0.114 B` – the eye sees green brighter than red and red brighter than blue
+- `adjustTone`: brightness shifts, contrast scales around the midpoint 128 (`f = 259 (C + 255) / (255 (259 − C))`), result clamped to 0–255
+- `toGray` combines both for every pixel
+
+**Dithering (`effects/dither/`)**
+- `threshold`: one fixed level – hard, flat areas, the reason dithering exists
+- `bayer`: every pixel gets its own threshold from a repeating 4×4 matrix → regular dot patterns. The 16 thresholds are computed once at module level instead of once per pixel
+- `errorDiffusion`: the rounding error of each pixel is passed on to neighbours that haven't been processed yet. Works on a copy, so the input stays untouched; neighbours outside the image are skipped (otherwise the error from the left edge would land at the end of the previous row)
+- Floyd–Steinberg and Atkinson are **one algorithm with two kernels** – the kernels are data (`[dx, dy, weight][]`), so another algorithm like Stucki would just be another table
+- `dither(image, params)` picks the algorithm (an exhaustive `switch` with `return` per case, so TypeScript complains if a new algorithm has no branch), then paints 0 with the foreground and 255 with the background color – ink on paper
+
+**Atkinson vs. Floyd–Steinberg in numbers**
+- 64 × 64 area, all gray 64 (≈ 25 % brightness): Floyd–Steinberg gives **25 %** white pixels, Atkinson only **18 %**
+- Floyd–Steinberg passes on 16/16 of the error, so the average brightness is kept. Atkinson passes on only 6/8 – the rest is lost on purpose, which gives brighter lights, darker shadows and the original Macintosh look
+
+**Live preview**
+- `lib/render.ts`: the effect runs on a copy shrunk by the pixel size, and the result is scaled back up with `imageSmoothingEnabled = false` – one computed pixel becomes a crisp block. Pixel size 2 means a quarter of the pixels to compute
+- `ImageCanvas` now renders the active effect instead of only drawing the bitmap. The plain image is just the case "no effect yet", so the existing component was extended instead of adding a second canvas
+- Dependencies `[bitmap, effect, dithering]`: every slider change creates a new params object in the store (`{...state.dithering, ...patch}`), so React sees a new reference and re-renders. Halftone params changing doesn't re-render, because the component only selects `s.dithering`
+
+**Measured** (1200 × 800 preview, Floyd–Steinberg, 11 contrast changes, headless Chrome)
+
+| Pixel size | Avg per render | Max |
+|---|---|---|
+| 1 | 241 ms | 462 ms |
+| 2 | 38 ms | 40 ms |
+| 4 | 10 ms | 11 ms |
+
+Bayer at pixel size 1: 98 ms. Above ~16 ms per frame the browser can't keep 60 fps – at pixel size 1 the sliders visibly lag, because the computation blocks the main thread
+
+**Tests**
+- 197 tests. Expected values for the effects were calculated by hand first (e.g. Floyd–Steinberg 4×1 at gray 100 → `[0, 255, 0, 0]`)
+- Property tests check principles instead of single pixels: Bayer keeps the brightness exactly (gray 64 / 128 / 192 → 25 / 50 / 75 % white), Floyd–Steinberg keeps it on average
+- Edge handling tested with one-direction kernels like `[[-1, 1, 1]]` – only possible because kernels are data
+- Checked that the tests catch real mistakes by breaking the code on purpose (missing edge check, no copy, `=` instead of `+=`, swapped colors)
+- `ImageCanvas` tests mock `renderEffect` and `dither` and only check the wiring; drawing itself is covered by `render.test.ts` with fake canvas contexts
+- jsdom has no `ImageData` – the `dither` tests use a minimal stand-in class via `vi.stubGlobal`
+
+**Tooling**
+- Prettier added and the whole codebase formatted once (no semicolons, double quotes, 4 spaces, 120 columns). `tokens.css` is excluded so its size/line-height pairs stay on one line; the formatting commit is listed in `.git-blame-ignore-revs`
+
+**Learnings**
+- Floating point: `luminance(128, 128, 128)` is `127.99999999999999` – compare with `toBeCloseTo`, not `toBe`
+- `Float32Array.map` returns a `Float32Array` again – to get another typed array, use `Uint8ClampedArray.from(source, fn)`
+- `Object.assign({}, 128)` returns `{}` – numbers have no properties to copy. Typed arrays are copied with `Float32Array.from`
+- `for (const [dx, dy, weight] of kernel)` – `for…of` with array destructuring. `for…in` would give the indices as strings
+- Anything that doesn't depend on the pixel belongs before the loop – the hex colors are converted once, the Bayer thresholds once per app start
+- Hooks only in the component body: `useRef` inside `useEffect` breaks the rules of hooks
+- A test that can't fail isn't a test: writing past the end of a `Float32Array` is silently ignored, so "doesn't write below the last row" could never catch anything and was removed
+
+**Open issues**
+- The threshold slider does nothing for Bayer – the matrix *is* the threshold there. Options: hide/disable the slider for Bayer, or use the threshold as an offset
+- The palette control (1 bit / 2 colors / 4 colors) has no effect yet. "1 bit" and "2 colors" probably mean the same to users – likely just *2 colors* vs. *4 levels*
+- Pixel size 1 blocks the main thread for up to ~0.5 s per render
+- Errors (unsupported file, decode failure) only go to the console – a toast follows later
+
+**Next**
+- Day 4: move `src/effects/` into a Web Worker, so the UI stays responsive while an effect is computed
+- Then Halftone and ASCII
