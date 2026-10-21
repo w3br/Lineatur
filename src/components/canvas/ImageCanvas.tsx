@@ -1,5 +1,8 @@
 import {useEffect, useRef} from "react"
 import styles from "./ImageCanvas.module.css"
+import {useEditorStore} from "../../store/useEditorStore.ts"
+import {renderEffect} from "../../lib/render.ts"
+import {dither} from "../../effects/dither"
 
 type ImageCanvasProps = {
     bitmap: ImageBitmap
@@ -8,15 +11,21 @@ type ImageCanvasProps = {
 
 export function ImageCanvas({bitmap, label}: ImageCanvasProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
+    const effect = useEditorStore((s) => s.effect)
+    const dithering = useEditorStore((s) => s.dithering)
 
     useEffect(() => {
         const canvas = canvasRef.current
         if (!canvas) return
 
-        canvas.width = bitmap.width
-        canvas.height = bitmap.height
-        canvas.getContext("2d")?.drawImage(bitmap, 0, 0)
-    }, [bitmap])
+        if (effect === "dithering") {
+            const start = performance.now()
+            renderEffect(bitmap, canvas, dithering.pixelSize, (image) => dither(image, dithering))
+            console.debug(`dither: ${(performance.now() - start).toFixed(1)} ms`)
+        } else {
+            renderEffect(bitmap, canvas, 1, (image) => image)
+        }
+    }, [bitmap, effect, dithering])
 
     return <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={label} />
 }
