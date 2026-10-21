@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { CanvasArea } from "./CanvasArea.tsx";
 import { useEditorStore } from "../../store/useEditorStore.ts";
-import { loadImage, type LoadedImage } from "../../lib/loadImage.ts";
+import { closeImage, loadImage, type LoadedImage } from "../../lib/loadImage.ts";
 
 // jsdom has no createImageBitmap, so decoding is replaced with a fake
-vi.mock("../../lib/loadImage.ts", () => ({ loadImage: vi.fn() }));
+vi.mock("../../lib/loadImage.ts", () => ({ loadImage: vi.fn(), closeImage: vi.fn() }));
 
 function fakeImage(name: string, width = 800, height = 600) {
     const bitmap = { width, height } as ImageBitmap;
@@ -45,6 +45,7 @@ afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
     vi.mocked(loadImage).mockReset();
+    vi.mocked(closeImage).mockReset();
 });
 
 describe("CanvasArea", () => {
@@ -78,6 +79,7 @@ describe("CanvasArea", () => {
             await drop(target, file("second.png"));
 
             expect(screen.getByRole("img", { name: "Preview of second.png" })).toBeTruthy();
+            expect(closeImage).toHaveBeenCalledOnce();
         });
 
         it("replaces the current image on paste", async () => {

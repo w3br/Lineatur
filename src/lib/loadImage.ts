@@ -40,3 +40,11 @@ async function resize(bitmap: ImageBitmap, scale: number): Promise<ImageBitmap> 
     context.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
     return createImageBitmap(canvas)
 }
+
+/** Disposes of the previously loaded image */
+export function closeImage(image: LoadedImage): void {
+    if (image.original!==image.preview){
+        image.preview.close()
+    }
+    image.original.close();
+}
