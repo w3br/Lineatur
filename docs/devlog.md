@@ -104,7 +104,7 @@ Component sheet (slider row, segmented control, icon button and button states) a
 - Image upload, empty state (D01) and canvas preview
 - First effect implementation and the worker pipeline
 
-## Day 2 – Store and image loading (2026-10-20)
+## Day 2 – Store and image loading (2026-10-20 – 2026-10-21)
 
 **Store**
 - Zustand store (`useEditorStore`) holds the active effect, one params object per effect and the loaded image. Panels read their slice with a selector, so a slider only re-renders the components that use it
@@ -112,11 +112,14 @@ Component sheet (slider row, segmented control, icon button and button states) a
 - `updateHalftone` / `updateDithering` / `updateAscii` take a `Partial<…>` patch and merge it into a new object (`{...state.halftone, ...patch}`). `set` replaces, `update` merges – the name says which one
 - One user action = one update: the ASCII preset/characters logic sends both fields in a single patch, so undo won't have to step through half-finished states later
 - Fixes the Day 1 bug: params survive switching effects, because they no longer live in the unmounted panel
+- `loadFile(file)` action: decodes the file, stores the image and releases the old one. Drop, paste, the drop zone button and the top bar button all call this one action, so the rules below apply to every way of loading
 
 **Image loading**
 - `lib/loadImage.ts`: `createImageBitmap(file)` decodes the file directly (faster than `<img>` + `onload`, and an `ImageBitmap` can be transferred to a worker later). Only PNG, JPEG and WebP are accepted
 - Two versions per image: `original` in full resolution for export, `preview` with at most 1200 px on the long side for the live preview. A 6000 × 4000 photo is shown from a 1200 × 800 bitmap – the main performance decision of the project
-- Three ways to load an image – drop, file picker, paste (Ctrl/Cmd+V) – all end in one `handleFile` in `CanvasArea`. Unsupported files are logged and the current image stays
+- Four ways to load an image – drop, paste (Ctrl/Cmd+V), the drop zone button and "Open image" in the top bar – all end in `loadFile`. Unsupported files are logged and the current image stays
+- Memory: a decoded `ImageBitmap` takes 4 bytes per pixel (≈ 96 MB for a 6000 × 4000 photo). `closeImage` releases both bitmaps right away instead of waiting for garbage collection – the old image only after the new one is shown. For small images `preview === original`, so it's closed once
+- Race condition: decoding is async, so a large file chosen first could finish after a small file chosen second and overwrite it. Every load gets a number from a module-level counter; after `await`, a load that isn't the latest anymore is discarded and released. Like `switchMap` in RxJS: the latest *started* load wins, not the latest *finished* one
 
 **Components**
 - `DropZone` (empty state D01): icon, heading, accepted formats, "Choose image" button
@@ -128,14 +131,18 @@ Component sheet (slider row, segmented control, icon button and button states) a
 - `usePasteFile` and `useFileDrop` in `src/hooks`. Paste and drop first lived in `DropZone`, but the drop zone is unmounted once an image is shown – and its listeners with it. In hooks, the logic runs as long as `CanvasArea` is mounted, which is always
 - `useFileDrop` returns `{isDragging, handlers}`; the handler names match the React props, so they can be spread onto any element with `{...handlers}`
 - `DropZone` became a presentational component: it gets `isDragging` as a prop instead of tracking drag state itself
+- `useFilePicker` returns `{open, input}`: the hidden `<input type="file">` as a JSX element plus a function that clicks it. Used by the drop zone and the top bar, each with its own input. `accept` is built from `ACCEPTED_TYPES`, so the list of formats exists only once
 
 **Accessibility**
 - File picker: the template's `<label htmlFor>` wasn't focusable. Replaced by a `<button>` that calls `inputRef.current?.click()` on the hidden input – reachable with Tab, triggered with Enter/Space
 - `<canvas>` is invisible to screen readers, so it gets `role="img"` and `aria-label="Preview of photo.jpg"` (WCAG 1.1.1 Non-text Content)
+- "Open image" icon button in the top bar: replacing an image no longer requires dragging or knowing about paste (WCAG 2.2 2.5.7 Dragging Movements). Labelled "Open" rather than "Replace", because it works with and without an image and never has to be disabled
 
 **Tests**
-- 101 tests: store (immutability, defaults never mutated, params survive effect switch), `DropZone`, `ImageCanvas` (with a fake `getContext`), both hooks via `renderHook`, `CanvasArea` with a mocked `loadImage` (replace by drop/paste, invalid file keeps the image)
-- Checked in a real browser: small, huge and portrait images, window resize, replacing, PDF drop
+- 136 tests: store (immutability, defaults never mutated, params survive effect switch), `DropZone`, `ImageCanvas` (with a fake `getContext`), all three hooks, `CanvasArea` with a mocked `loadImage` (replace by drop/paste, invalid file keeps the image), `App` (open button, tab order)
+- `loadImage`: type check and preview scaling with a stubbed `createImageBitmap` (6000 × 4000 → 1200 × 800, portrait, exactly 1200 px)
+- `loadFile` races tested with hand-resolved promises (`deferred()`) instead of timers – the test decides which load finishes first. Verified that the tests fail when the request check is removed
+- Checked in a real browser: small, huge and portrait images, window resize, replacing via drop, paste and the open button, PDF drop
 
 **Decisions**
 - Generic UI components get their state through props; only container components (`App`, `CanvasArea`) read the store. The first version of the export button read the store inside `Button` – which would have disabled every button in the app
@@ -150,13 +157,14 @@ Component sheet (slider row, segmented control, icon button and button states) a
 - The well-known drag flicker (`dragleave` fires when moving onto a child element) doesn't show here: `dragover` fires continuously and sets the state back before the next frame. It hits implementations that set it in `dragenter`, which fires only once
 - Template literals need backticks – `'Preview of ${image.name}'` renders the placeholder literally
 - `function` declarations are hoisted, so a hook can receive `handleFile` before its line – it works, but reads backwards
+- A counter that all calls share lives at module level (`let latestRequest`); the number of one call lives inside it (`const request`). Inside the function, every call would start at 0 and the check would never trigger
+- With `verbatimModuleSyntax`, `import type` removes the import at build time – fine for types, wrong for functions like `loadImage` that run at runtime
+- A hook can return JSX – it's just a value. The component decides where it's rendered; if it's never rendered, the ref stays `null` and `open()` silently does nothing
+- `vi.mock` with a factory replaces the whole module: a new export (`ACCEPTED_TYPES`) was `undefined` in tests. Partial mocks (`importOriginal`) only replace what's needed
+- A `catch` that only logs can hide bugs in tests too: a missing mock threw inside `loadFile`, got logged, and the test stayed green
 
 **Open issues**
-- No way to replace an image without dragging or pasting – a "Replace image" button is needed (WCAG 2.2 2.5.7 Dragging Movements)
-- Old `ImageBitmap`s are never released – `bitmap.close()` on replace (note: for small images `preview === original`)
-- Two files loaded in quick succession: the slower decode can win. Not fixed yet
-- Test for `isSupportedImage`
+- Errors (unsupported file, decode failure) only go to the console – a toast follows later
 
 **Next**
-- Finish Day 2: replace button, `bitmap.close()`, `isSupportedImage` test
 - Day 3: first effect – grayscale and threshold on `ImageData`, the base for all dithering algorithms
