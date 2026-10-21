@@ -31,9 +31,9 @@
     font-weight: var(--weight-medium);
     cursor: pointer;
     transition:
-            background-color var(--duration-fast) var(--ease-out),
-            border-color var(--duration-fast) var(--ease-out),
-            color var(--duration-fast) var(--ease-out);
+        background-color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
 }
 
 .segment:hover:not([aria-checked="true"]) {

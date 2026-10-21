@@ -6,6 +6,7 @@
     place-items: center;
 }
 
-.area[data-dragging='true']{
-    outline: 2px dashed var(--accent-default); outline-offset: calc(-1 * var(--space-8));
+.area[data-dragging="true"] {
+    outline: 2px dashed var(--accent-default);
+    outline-offset: calc(-1 * var(--space-8));
 }

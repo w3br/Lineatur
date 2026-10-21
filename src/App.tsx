@@ -1,19 +1,19 @@
-import {AppShell} from "./components/layout/AppShell.tsx";
-import {TopBar} from "./components/layout/TopBar.tsx";
-import {Button} from "./components/ui/Button.tsx";
-import {IconButton} from "./components/ui/IconButton.tsx";
-import {Download, Redo2, Undo2, ImageUp} from "lucide-react";
-import {SegmentedControl} from "./components/ui/SegmentedControl.tsx";
-import {HalftonePanel} from "./components/panels/HalftonePanel.tsx";
-import {DitheringPanel} from "./components/panels/DitheringPanel.tsx";
-import {AsciiPanel} from "./components/panels/AsciiPanel.tsx";
-import {type ComponentType} from "react";
-import styles from "./App.module.css";
-import {useEditorStore} from "./store/useEditorStore.ts";
-import type {Effect} from "./store/params.ts";
-import {CanvasArea} from "./components/canvas/CanvasArea.tsx";
-import {StatusBar} from "./components/layout/StatusBar.tsx";
-import {useFilePicker} from "./hooks/useFilePicker.tsx";
+import {AppShell} from "./components/layout/AppShell.tsx"
+import {TopBar} from "./components/layout/TopBar.tsx"
+import {Button} from "./components/ui/Button.tsx"
+import {IconButton} from "./components/ui/IconButton.tsx"
+import {Download, Redo2, Undo2, ImageUp} from "lucide-react"
+import {SegmentedControl} from "./components/ui/SegmentedControl.tsx"
+import {HalftonePanel} from "./components/panels/HalftonePanel.tsx"
+import {DitheringPanel} from "./components/panels/DitheringPanel.tsx"
+import {AsciiPanel} from "./components/panels/AsciiPanel.tsx"
+import {type ComponentType} from "react"
+import styles from "./App.module.css"
+import {useEditorStore} from "./store/useEditorStore.ts"
+import type {Effect} from "./store/params.ts"
+import {CanvasArea} from "./components/canvas/CanvasArea.tsx"
+import {StatusBar} from "./components/layout/StatusBar.tsx"
+import {useFilePicker} from "./hooks/useFilePicker.tsx"
 
 // One panel per effect – the effect switcher picks which one is shown
 const panels: Record<Effect, ComponentType> = {
@@ -23,13 +23,13 @@ const panels: Record<Effect, ComponentType> = {
 }
 
 // Files in public/ are served from the base path (/Lineatur/ on GitHub Pages), not from /
-const logoUrl = `${import.meta.env.BASE_URL}favicon.svg`;
+const logoUrl = `${import.meta.env.BASE_URL}favicon.svg`
 
 function App() {
-    const effect = useEditorStore(state => state.effect)
-    const setEffect = useEditorStore(state => state.setEffect)
-    const hasImage = useEditorStore(state => state.image !== null)
-    const loadFile = useEditorStore(state => state.loadFile)
+    const effect = useEditorStore((state) => state.effect)
+    const setEffect = useEditorStore((state) => state.setEffect)
+    const hasImage = useEditorStore((state) => state.image !== null)
+    const loadFile = useEditorStore((state) => state.loadFile)
     const picker = useFilePicker(loadFile)
 
     // Capitalized, so JSX treats it as a component: <Panel/>
@@ -42,7 +42,7 @@ function App() {
                     start={
                         <h1 className={styles.brand}>
                             {/* Decorative: the heading text already names the app */}
-                            <img className={styles.logo} src={logoUrl} alt=""/>
+                            <img className={styles.logo} src={logoUrl} alt="" />
                             Lineatur
                         </h1>
                     }
@@ -62,21 +62,23 @@ function App() {
                         <>
                             <div className={styles.history}>
                                 {picker.input}
-                                <IconButton icon={<ImageUp size={16}/>} label="Open image" onClick={picker.open}/>
-                                <IconButton icon={<Undo2 size={16}/>} label="Undo"/>
-                                <IconButton icon={<Redo2 size={16}/>} label="Redo"/>
+                                <IconButton icon={<ImageUp size={16} />} label="Open image" onClick={picker.open} />
+                                <IconButton icon={<Undo2 size={16} />} label="Undo" />
+                                <IconButton icon={<Redo2 size={16} />} label="Redo" />
                             </div>
-                            <Button variant="primary" icon={<Download size={16}/>} disabled={!hasImage}>Export</Button>
+                            <Button variant="primary" icon={<Download size={16} />} disabled={!hasImage}>
+                                Export
+                            </Button>
                         </>
                     }
                 />
             }
 
-            canvas={<CanvasArea/>}
+            canvas={<CanvasArea />}
 
-            panel={<Panel/>}
+            panel={<Panel />}
 
-            statusBar={<StatusBar/>}
+            statusBar={<StatusBar />}
         />
     )
 }

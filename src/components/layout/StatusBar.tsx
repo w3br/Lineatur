@@ -1,4 +1,4 @@
-import {useEditorStore} from "../../store/useEditorStore.ts";
+import {useEditorStore} from "../../store/useEditorStore.ts"
 
 // Layout and typography come from the <footer> in AppShell
 export function StatusBar() {
@@ -6,5 +6,9 @@ export function StatusBar() {
 
     if (!image) return <span>No image loaded</span>
 
-    return <span>{image.width} × {image.height} · {image.name}</span>
+    return (
+        <span>
+            {image.width} × {image.height} · {image.name}
+        </span>
+    )
 }

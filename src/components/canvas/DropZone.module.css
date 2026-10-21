@@ -11,7 +11,7 @@
     padding: var(--space-8);
 }
 
-.dropZone[data-dragging='true'] {
+.dropZone[data-dragging="true"] {
     border-color: var(--accent-default);
 }
 

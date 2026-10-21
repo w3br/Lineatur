@@ -1,36 +1,38 @@
-import styles from "./ColorRow.module.css";
-import {type KeyboardEvent, useId, useState} from "react";
-import {normalizeHex} from "../../lib/color.ts";
+import styles from "./ColorRow.module.css"
+import {type KeyboardEvent, useId, useState} from "react"
+import {normalizeHex} from "../../lib/color.ts"
 
 type ColorRowProps = {
-    label: string;
-    value: string;
-    onChange: (color: string) => void;
-};
+    label: string
+    value: string
+    onChange: (color: string) => void
+}
 
 export function ColorRow({label, value, onChange}: ColorRowProps) {
-    const id = useId();
+    const id = useId()
 
     // What the user is typing into the hex field. null = not editing, show `value`.
-    const [draft, setDraft] = useState<string | null>(null);
+    const [draft, setDraft] = useState<string | null>(null)
 
     function commitDraft() {
-        if (draft === null) return;
+        if (draft === null) return
 
-        const hex = normalizeHex(draft);
+        const hex = normalizeHex(draft)
         // Invalid input simply falls back to the current value
-        if (hex !== null) onChange(hex);
-        setDraft(null);
+        if (hex !== null) onChange(hex)
+        setDraft(null)
     }
 
     function handleHexKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-        if (event.key === "Enter") commitDraft();
-        if (event.key === "Escape") setDraft(null);
+        if (event.key === "Enter") commitDraft()
+        if (event.key === "Escape") setDraft(null)
     }
 
     return (
         <div className={styles.root}>
-            <label htmlFor={id} className={styles.label}>{label}</label>
+            <label htmlFor={id} className={styles.label}>
+                {label}
+            </label>
             <div className={styles.field}>
                 <input
                     id={id}
@@ -52,5 +54,5 @@ export function ColorRow({label, value, onChange}: ColorRowProps) {
                 />
             </div>
         </div>
-    );
+    )
 }

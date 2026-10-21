@@ -4,14 +4,14 @@
  * Returns null for anything else, so the caller can fall back to the old value.
  */
 export function normalizeHex(input: string): string | null {
-    const hex = input.trim().replace(/^#/, "").toLowerCase();
+    const hex = input.trim().replace(/^#/, "").toLowerCase()
 
-    if (/^[0-9a-f]{6}$/.test(hex)) return `#${hex}`;
+    if (/^[0-9a-f]{6}$/.test(hex)) return `#${hex}`
 
     // Shorthand: "f80" → "ff8800"
     if (/^[0-9a-f]{3}$/.test(hex)) {
-        return `#${[...hex].map((char) => char + char).join("")}`;
+        return `#${[...hex].map((char) => char + char).join("")}`
     }
 
-    return null;
+    return null
 }

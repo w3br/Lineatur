@@ -1,7 +1,7 @@
-import { clamp } from 'es-toolkit/math';
+import {clamp} from "es-toolkit/math"
 
 export function luminance(r: number, g: number, b: number): number {
-    return 0.299 * r + 0.587 * g + 0.114 * b;
+    return 0.299 * r + 0.587 * g + 0.114 * b
 }
 
 export function adjustTone(value: number, brightness: number, contrast: number): number {

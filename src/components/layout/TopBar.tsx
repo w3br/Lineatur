@@ -1,10 +1,10 @@
-import type {ReactNode} from "react";
-import styles from "./TopBar.module.css";
+import type {ReactNode} from "react"
+import styles from "./TopBar.module.css"
 
 type TopBarProps = {
-    start: ReactNode;
-    center: ReactNode;
-    end: ReactNode;
+    start: ReactNode
+    center: ReactNode
+    end: ReactNode
 }
 
 export function TopBar({start, center, end}: TopBarProps) {
@@ -16,4 +16,3 @@ export function TopBar({start, center, end}: TopBarProps) {
         </div>
     )
 }
-

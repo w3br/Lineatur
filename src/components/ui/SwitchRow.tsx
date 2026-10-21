@@ -1,18 +1,20 @@
-import {useId} from "react";
-import styles from "./SwitchRow.module.css";
+import {useId} from "react"
+import styles from "./SwitchRow.module.css"
 
 type SwitchRowProps = {
-    label: string;
-    checked: boolean;
-    onChange: (checked: boolean) => void;
-};
+    label: string
+    checked: boolean
+    onChange: (checked: boolean) => void
+}
 
 export function SwitchRow({label, checked, onChange}: SwitchRowProps) {
-    const id = useId();
+    const id = useId()
 
     return (
         <div className={styles.root}>
-            <label htmlFor={id} className={styles.label}>{label}</label>
+            <label htmlFor={id} className={styles.label}>
+                {label}
+            </label>
             <button
                 id={id}
                 type="button"
@@ -21,8 +23,8 @@ export function SwitchRow({label, checked, onChange}: SwitchRowProps) {
                 className={styles.switch}
                 onClick={() => onChange(!checked)}
             >
-                <span className={styles.thumb}/>
+                <span className={styles.thumb} />
             </button>
         </div>
-    );
+    )
 }

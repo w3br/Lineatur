@@ -1,6 +1,14 @@
-import {create} from "zustand";
-import {defaultHalftone, defaultDithering, defaultAscii,  type Effect, type HalftoneParams, type DitheringParams, type AsciiParams} from "./params.ts";
-import {closeImage, loadImage, type LoadedImage} from "../lib/loadImage.ts";
+import {create} from "zustand"
+import {
+    defaultHalftone,
+    defaultDithering,
+    defaultAscii,
+    type Effect,
+    type HalftoneParams,
+    type DitheringParams,
+    type AsciiParams,
+} from "./params.ts"
+import {closeImage, loadImage, type LoadedImage} from "../lib/loadImage.ts"
 
 type EditorState = {
     effect: Effect
@@ -20,7 +28,7 @@ type EditorState = {
 let latestRequest = 0
 
 export const useEditorStore = create<EditorState>()((set, get) => ({
-    effect: 'halftone',
+    effect: "halftone",
     halftone: defaultHalftone,
     dithering: defaultDithering,
     ascii: defaultAscii,
@@ -33,7 +41,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     setImage: (image) => set({image}),
 
     loadFile: async (file) => {
-        const request = ++latestRequest;
+        const request = ++latestRequest
 
         try {
             const next = await loadImage(file)
@@ -49,5 +57,5 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         } catch (error) {
             console.error(error)
         }
-    }
+    },
 }))

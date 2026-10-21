@@ -9,10 +9,14 @@
     font-size: var(--text-base-size);
     font-weight: var(--weight-medium);
     cursor: pointer;
-    transition: background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
+    transition:
+        background-color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
 }
-.button:disabled { opacity: 0.4; cursor: not-allowed; }
+.button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
 
 /* Size icons via the token, so they scale with the UI (Lucide's size prop is fixed px) */
 .button svg {
@@ -21,11 +25,28 @@
     flex-shrink: 0;
 }
 
-.primary { background: var(--accent-default); color: var(--text-inverse); }
-.primary:hover:not(:disabled) { background: var(--accent-hover); }
+.primary {
+    background: var(--accent-default);
+    color: var(--text-inverse);
+}
+.primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
 
-.secondary { background: var(--bg-elevated); border-color: var(--border-default); color: var(--text-primary); }
-.secondary:hover:not(:disabled) { border-color: var(--border-strong); }
+.secondary {
+    background: var(--bg-elevated);
+    border-color: var(--border-default);
+    color: var(--text-primary);
+}
+.secondary:hover:not(:disabled) {
+    border-color: var(--border-strong);
+}
 
-.ghost { background: transparent; color: var(--text-secondary); }
-.ghost:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
+.ghost {
+    background: transparent;
+    color: var(--text-secondary);
+}
+.ghost:hover:not(:disabled) {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}

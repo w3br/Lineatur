@@ -52,11 +52,7 @@
 .slider::-webkit-slider-runnable-track {
     height: var(--track-height);
     border-radius: var(--radius-full);
-    background: linear-gradient(
-            to right,
-            var(--accent-default)  var(--fill),
-            var(--border-strong)  var(--fill)
-    );
+    background: linear-gradient(to right, var(--accent-default) var(--fill), var(--border-strong) var(--fill));
 }
 
 .slider::-webkit-slider-thumb {

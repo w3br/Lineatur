@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+import {useEffect} from "react"
 
 export function usePasteFile(onFile: (file: File) => void) {
     // Paste (Ctrl+V) – listens on the whole window, so it needs cleanup
@@ -8,7 +8,7 @@ export function usePasteFile(onFile: (file: File) => void) {
             if (file) onFile(file)
         }
 
-        window.addEventListener('paste', handlePaste)
-        return () => window.removeEventListener('paste', handlePaste)
+        window.addEventListener("paste", handlePaste)
+        return () => window.removeEventListener("paste", handlePaste)
     }, [onFile])
 }

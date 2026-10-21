@@ -1,4 +1,4 @@
-import {type DragEvent, useState} from "react";
+import {type DragEvent, useState} from "react"
 
 export function useFileDrop(onFile: (file: File) => void) {
     const [isDragging, setIsDragging] = useState(false)

@@ -1,6 +1,6 @@
-import {useId, useRef} from "react";
-import styles from "./SegmentedControl.module.css";
-import type {Option} from "./types.ts";
+import {useId, useRef} from "react"
+import styles from "./SegmentedControl.module.css"
+import type {Option} from "./types.ts"
 
 type SegmentedControlProps<T extends string> = {
     label: string
@@ -11,37 +11,43 @@ type SegmentedControlProps<T extends string> = {
     showLabel?: boolean
 }
 
-export function SegmentedControl<T extends string>({label, options, value, onChange, showLabel = false}: SegmentedControlProps<T>) {
-    const labelId = useId();
-    const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+export function SegmentedControl<T extends string>({
+    label,
+    options,
+    value,
+    onChange,
+    showLabel = false,
+}: SegmentedControlProps<T>) {
+    const labelId = useId()
+    const buttonRefs = useRef<(HTMLButtonElement | null)[]>([])
 
     function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-        const currentIndex = options.findIndex(option => option.value === value);
-        let nextIndex: number;
+        const currentIndex = options.findIndex((option) => option.value === value)
+        let nextIndex: number
 
         switch (event.key) {
             case "ArrowRight":
             case "ArrowDown":
-                nextIndex = (currentIndex + 1) % options.length;
-                break;
+                nextIndex = (currentIndex + 1) % options.length
+                break
             case "ArrowLeft":
             case "ArrowUp":
-                nextIndex = (currentIndex - 1 + options.length) % options.length;
-                break;
+                nextIndex = (currentIndex - 1 + options.length) % options.length
+                break
             case "Home":
-                nextIndex = 0;
-                break;
+                nextIndex = 0
+                break
             case "End":
-                nextIndex = options.length - 1;
-                break;
+                nextIndex = options.length - 1
+                break
             default:
                 // Leave all other keys (Tab, Space, Enter …) to the browser.
-                return;
+                return
         }
 
-        event.preventDefault();
-        onChange(options[nextIndex].value);
-        buttonRefs.current[nextIndex]?.focus();
+        event.preventDefault()
+        onChange(options[nextIndex].value)
+        buttonRefs.current[nextIndex]?.focus()
     }
 
     const group = (
@@ -72,12 +78,14 @@ export function SegmentedControl<T extends string>({label, options, value, onCha
         </div>
     )
 
-    if (!showLabel) return group;
+    if (!showLabel) return group
 
     // <label> only works for form elements, a radiogroup is named via aria-labelledby instead
     return (
         <div className={styles.field}>
-            <span id={labelId} className={styles.label}>{label}</span>
+            <span id={labelId} className={styles.label}>
+                {label}
+            </span>
             {group}
         </div>
     )
