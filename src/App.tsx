@@ -2,7 +2,7 @@ import {AppShell} from "./components/layout/AppShell.tsx";
 import {TopBar} from "./components/layout/TopBar.tsx";
 import {Button} from "./components/ui/Button.tsx";
 import {IconButton} from "./components/ui/IconButton.tsx";
-import {Download, Redo2, Undo2} from "lucide-react";
+import {Download, Redo2, Undo2, ImageUp} from "lucide-react";
 import {SegmentedControl} from "./components/ui/SegmentedControl.tsx";
 import {HalftonePanel} from "./components/panels/HalftonePanel.tsx";
 import {DitheringPanel} from "./components/panels/DitheringPanel.tsx";
@@ -13,6 +13,7 @@ import {useEditorStore} from "./store/useEditorStore.ts";
 import type {Effect} from "./store/params.ts";
 import {CanvasArea} from "./components/canvas/CanvasArea.tsx";
 import {StatusBar} from "./components/layout/StatusBar.tsx";
+import {useFilePicker} from "./hooks/useFilePicker.tsx";
 
 // One panel per effect – the effect switcher picks which one is shown
 const panels: Record<Effect, ComponentType> = {
@@ -28,6 +29,8 @@ function App() {
     const effect = useEditorStore(state => state.effect)
     const setEffect = useEditorStore(state => state.setEffect)
     const hasImage = useEditorStore(state => state.image !== null)
+    const loadFile = useEditorStore(state => state.loadFile)
+    const picker = useFilePicker(loadFile)
 
     // Capitalized, so JSX treats it as a component: <Panel/>
     const Panel = panels[effect]
@@ -58,6 +61,8 @@ function App() {
                     end={
                         <>
                             <div className={styles.history}>
+                                {picker.input}
+                                <IconButton icon={<ImageUp size={16}/>} label="Open image" onClick={picker.open}/>
                                 <IconButton icon={<Undo2 size={16}/>} label="Undo"/>
                                 <IconButton icon={<Redo2 size={16}/>} label="Redo"/>
                             </div>
