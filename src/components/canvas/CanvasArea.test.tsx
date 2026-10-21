@@ -4,8 +4,13 @@ import { CanvasArea } from "./CanvasArea.tsx";
 import { useEditorStore } from "../../store/useEditorStore.ts";
 import { closeImage, loadImage, type LoadedImage } from "../../lib/loadImage.ts";
 
-// jsdom has no createImageBitmap, so decoding is replaced with a fake
-vi.mock("../../lib/loadImage.ts", () => ({ loadImage: vi.fn(), closeImage: vi.fn() }));
+// jsdom has no createImageBitmap – partial mock: only decoding and releasing are faked,
+// everything else (e.g. ACCEPTED_TYPES) stays real
+vi.mock("../../lib/loadImage.ts", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("../../lib/loadImage.ts")>()),
+    loadImage: vi.fn(),
+    closeImage: vi.fn(),
+}));
 
 function fakeImage(name: string, width = 800, height = 600) {
     const bitmap = { width, height } as ImageBitmap;

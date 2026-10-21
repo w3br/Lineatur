@@ -1,30 +1,23 @@
-import {type ChangeEvent,  useRef} from 'react'
 import {ImagePlus} from "lucide-react";
 import styles from "./DropZone.module.css";
+import {useFilePicker} from "../../hooks/useFilePicker.tsx";
 
 type DropZoneProps = {
     onFile: (file: File) => void
     isDragging: boolean
 }
 
-export function DropZone({onFile, isDragging}: DropZoneProps) {
-    const inputRef = useRef<HTMLInputElement>(null)
 
-    // File picker
-    function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
-        const file = event.target.files?.[0]
-        if (file) onFile(file)
-        event.target.value = '' // allows choosing the same file again
-    }
+export function DropZone({onFile, isDragging}: DropZoneProps) {
+    const picker = useFilePicker(onFile);
 
     return (
-        <div className={styles.dropZone} data-dragging={(isDragging)}>
+        <div className={styles.dropZone} data-dragging={isDragging}>
             <ImagePlus className={styles.icon} aria-hidden={true}/>
             <h2 className={styles.heading}>Choose or drop an image</h2>
             <p className={styles.hint}>PNG, JPEG or WebP</p>
-            <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={handleInputChange}
-                   ref={inputRef}/>
-            <button className={styles.button} type="button" onClick={() => inputRef.current?.click()}>
+            {picker.input}
+            <button className={styles.button} type="button" onClick={picker.open}>
                 Choose image
             </button>
         </div>

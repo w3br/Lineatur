@@ -8,7 +8,7 @@ export type LoadedImage = {
     preview: ImageBitmap
 }
 
-const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+export const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp']
 const PREVIEW_MAX = 1200
 
 export function isSupportedImage(file: File): boolean {

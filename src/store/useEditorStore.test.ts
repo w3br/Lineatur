@@ -3,8 +3,13 @@ import { useEditorStore } from "./useEditorStore.ts";
 import { defaultAscii, defaultDithering, defaultHalftone } from "./params.ts";
 import { closeImage, loadImage, type LoadedImage } from "../lib/loadImage.ts";
 
-// jsdom can't decode images – loadFile's own logic is tested, decoding is faked
-vi.mock("../lib/loadImage.ts", () => ({ loadImage: vi.fn(), closeImage: vi.fn() }));
+// jsdom can't decode images – loadFile's own logic is tested, decoding and releasing are faked.
+// Partial mock, so everything else (e.g. ACCEPTED_TYPES) stays real
+vi.mock("../lib/loadImage.ts", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("../lib/loadImage.ts")>()),
+    loadImage: vi.fn(),
+    closeImage: vi.fn(),
+}));
 
 // The store is a module-level singleton, so every test starts from a fresh copy
 beforeEach(() => useEditorStore.setState(useEditorStore.getInitialState()));
