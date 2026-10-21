@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest"
-import {normalizeHex} from "./color.ts"
+import {hexToRgb, normalizeHex} from "./color.ts"
 
 describe("normalizeHex", () => {
     it.each([
@@ -30,5 +30,27 @@ describe("normalizeHex", () => {
         "xxff8800yy", // must match the whole string
     ])("rejects %j", (input) => {
         expect(normalizeHex(input)).toBeNull()
+    })
+})
+
+describe("hexToRgb", () => {
+    it.each([
+        ["#ff8800", [255, 136, 0]],
+        ["#000000", [0, 0, 0]],
+        ["#ffffff", [255, 255, 255]],
+        ["#7cc4ff", [124, 196, 255]],
+    ])("converts %s", (hex, expected) => {
+        expect(hexToRgb(hex)).toEqual(expected)
+    })
+
+    it.each([
+        ["#f80", [255, 136, 0]],
+        ["FF8800", [255, 136, 0]],
+    ])("accepts the forms normalizeHex accepts: %s", (hex, expected) => {
+        expect(hexToRgb(hex)).toEqual(expected)
+    })
+
+    it("falls back to black for invalid input", () => {
+        expect(hexToRgb("red")).toEqual([0, 0, 0])
     })
 })

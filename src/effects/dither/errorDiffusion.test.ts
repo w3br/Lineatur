@@ -1,7 +1,5 @@
 import {describe, expect, it} from "vitest"
-import {ATKINSON, errorDiffusion, FLOYD_STEINBERG} from "./errorDiffusion.ts"
-
-type Kernel = Parameters<typeof errorDiffusion>[3]
+import {ATKINSON, errorDiffusion, FLOYD_STEINBERG, type Kernel} from "./errorDiffusion.ts"
 
 // A flat area: every pixel has the same gray value
 function flat(width: number, height: number, value: number) {

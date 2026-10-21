@@ -15,3 +15,23 @@ export function normalizeHex(input: string): string | null {
 
     return null
 }
+
+/**
+ * Turns "#ff8800" (or any form normalizeHex accepts) into [255, 136, 0].
+ * Invalid input gives black: the store only ever holds colors that passed ColorRow's validation,
+ * so this is a safety net that keeps the effect running instead of throwing mid-render.
+ */
+export function hexToRgb(hex: string): [number, number, number] {
+    const normalized = normalizeHex(hex)
+
+    if (normalized === null) {
+        return [0, 0, 0]
+    }
+
+    // "#rrggbb" – each pair of hex digits is one channel (0–255)
+    const r = Number.parseInt(normalized.slice(1, 3), 16)
+    const g = Number.parseInt(normalized.slice(3, 5), 16)
+    const b = Number.parseInt(normalized.slice(5, 7), 16)
+
+    return [r, g, b]
+}
