@@ -28,6 +28,7 @@ describe("initial state", () => {
         expect(state.dithering).toEqual(defaultDithering)
         expect(state.ascii).toEqual(defaultAscii)
         expect(state.image).toBeNull()
+        expect(state.renderMs).toBeNull()
     })
 })
 
@@ -108,6 +109,16 @@ describe("setImage", () => {
         useEditorStore.getState().updateDithering({threshold: 70})
         useEditorStore.getState().setImage(image)
         expect(useEditorStore.getState().dithering.threshold).toBe(70)
+    })
+})
+
+describe("setRenderMs", () => {
+    it("stores the last render time and clears it again", () => {
+        useEditorStore.getState().setRenderMs(38)
+        expect(useEditorStore.getState().renderMs).toBe(38)
+
+        useEditorStore.getState().setRenderMs(null)
+        expect(useEditorStore.getState().renderMs).toBeNull()
     })
 })
 

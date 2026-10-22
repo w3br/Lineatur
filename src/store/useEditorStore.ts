@@ -16,12 +16,15 @@ type EditorState = {
     dithering: DitheringParams
     ascii: AsciiParams
     image: LoadedImage | null
+    /** How long the last preview render took – shown in the status bar */
+    renderMs: number | null
 
     setEffect: (effect: Effect) => void
     updateHalftone: (params: Partial<HalftoneParams>) => void
     updateDithering: (params: Partial<DitheringParams>) => void
     updateAscii: (params: Partial<AsciiParams>) => void
     setImage: (image: LoadedImage | null) => void
+    setRenderMs: (ms: number | null) => void
     loadFile: (file: File) => Promise<void>
 }
 
@@ -33,12 +36,14 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     dithering: defaultDithering,
     ascii: defaultAscii,
     image: null,
+    renderMs: null,
 
     setEffect: (effect) => set({effect}),
     updateHalftone: (params) => set((state) => ({halftone: {...state.halftone, ...params}})),
     updateDithering: (params) => set((state) => ({dithering: {...state.dithering, ...params}})),
     updateAscii: (params) => set((state) => ({ascii: {...state.ascii, ...params}})),
     setImage: (image) => set({image}),
+    setRenderMs: (renderMs) => set({renderMs}),
 
     loadFile: async (file) => {
         const request = ++latestRequest

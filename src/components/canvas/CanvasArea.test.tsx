@@ -12,10 +12,8 @@ vi.mock("../../lib/loadImage.ts", async (importOriginal) => ({
     closeImage: vi.fn(),
 }))
 
-// jsdom has no OffscreenCanvas – the pipeline is tested on its own in pipeline.test.ts
-vi.mock("../../effects/pipeline.ts", () => ({
-    renderPixelEffect: vi.fn((source: ImageBitmap) => ({width: source.width, height: source.height, close: vi.fn()})),
-}))
+// jsdom has no Worker – the renderer is tested on its own in src/worker
+vi.mock("../../worker/useRenderer.ts", () => ({useRenderer: vi.fn(() => null)}))
 
 function fakeImage(name: string, width = 800, height = 600) {
     const bitmap = {width, height} as ImageBitmap

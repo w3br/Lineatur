@@ -1,8 +1,8 @@
-import {useEffect, useRef} from "react"
+import {useEffect, useMemo, useRef} from "react"
 import styles from "./ImageCanvas.module.css"
 import {useEditorStore} from "../../store/useEditorStore.ts"
-import {dither} from "../../effects/dither"
-import {renderPixelEffect} from "../../effects/pipeline.ts"
+import {useRenderer} from "../../worker/useRenderer.ts"
+import type {RenderJob} from "../../worker/messages.ts"
 
 type ImageCanvasProps = {
     bitmap: ImageBitmap
@@ -12,26 +12,29 @@ type ImageCanvasProps = {
 export function ImageCanvas({bitmap, label}: ImageCanvasProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const effect = useEditorStore((s) => s.effect)
-    const dithering = useEditorStore((s) => s.dithering)
+    // Only the active effect's params – changing another effect's sliders doesn't trigger a render
+    const params = useEditorStore((s) => s[s.effect])
+    const setRenderMs = useEditorStore((s) => s.setRenderMs)
+
+    // Stable job: a new object only when effect or params really change (pitfall 4).
+    // The cast is needed because TypeScript can't tell that both selectors read the same effect.
+    const job = useMemo(() => ({effect, params}) as RenderJob, [effect, params])
+    const result = useRenderer(bitmap, job)
 
     useEffect(() => {
         const canvas = canvasRef.current
-        if (!canvas) return
-
-        if (effect === "dithering") {
-            const result = renderPixelEffect(bitmap, dithering.pixelSize, (image) => dither(image, dithering))
-            canvas.width = result.width
-            canvas.height = result.height
-            canvas.getContext("2d")?.drawImage(result, 0, 0)
-            result.close()
-        } else {
-            const result = renderPixelEffect(bitmap, 1, (image) => image)
-            canvas.width = result.width
-            canvas.height = result.height
-            canvas.getContext("2d")?.drawImage(result, 0, 0)
-            result.close()
-        }
-    }, [bitmap, effect, dithering])
+        if (!canvas || !result) return
+        draw(canvas, result.bitmap)
+        setRenderMs(result.ms)
+    }, [result, setRenderMs])
 
     return <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={label} />
+}
+
+/** drawImage instead of transferFromImageBitmap: it doesn't use the bitmap up, so StrictMode can draw twice. */
+function draw(canvas: HTMLCanvasElement, bitmap: ImageBitmap) {
+    // The resolution must match, otherwise the canvas stays 300 × 150 and crops the image
+    canvas.width = bitmap.width
+    canvas.height = bitmap.height
+    canvas.getContext("2d")?.drawImage(bitmap, 0, 0)
 }
