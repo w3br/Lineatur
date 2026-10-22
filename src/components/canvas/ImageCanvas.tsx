@@ -1,8 +1,8 @@
 import {useEffect, useRef} from "react"
 import styles from "./ImageCanvas.module.css"
 import {useEditorStore} from "../../store/useEditorStore.ts"
-import {renderEffect} from "../../lib/render.ts"
 import {dither} from "../../effects/dither"
+import {renderPixelEffect} from "../../effects/pipeline.ts"
 
 type ImageCanvasProps = {
     bitmap: ImageBitmap
@@ -19,11 +19,17 @@ export function ImageCanvas({bitmap, label}: ImageCanvasProps) {
         if (!canvas) return
 
         if (effect === "dithering") {
-            const start = performance.now()
-            renderEffect(bitmap, canvas, dithering.pixelSize, (image) => dither(image, dithering))
-            console.debug(`dither: ${(performance.now() - start).toFixed(1)} ms`)
+            const result = renderPixelEffect(bitmap, dithering.pixelSize, (image) => dither(image, dithering))
+            canvas.width = result.width
+            canvas.height = result.height
+            canvas.getContext("2d")?.drawImage(result, 0, 0)
+            result.close()
         } else {
-            renderEffect(bitmap, canvas, 1, (image) => image)
+            const result = renderPixelEffect(bitmap, 1, (image) => image)
+            canvas.width = result.width
+            canvas.height = result.height
+            canvas.getContext("2d")?.drawImage(result, 0, 0)
+            result.close()
         }
     }, [bitmap, effect, dithering])
 
