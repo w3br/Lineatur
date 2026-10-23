@@ -2,12 +2,14 @@ import {afterEach, beforeEach, describe, expect, it, vi} from "vitest"
 import type {RenderRequest} from "./messages.ts"
 import {renderPixelEffect} from "../effects/pipeline.ts"
 import {dither} from "../effects/dither"
+import {halftone} from "../effects/halftone/halftone.ts"
 import {defaultAscii, defaultDithering, defaultHalftone} from "../store/params.ts"
 
-// The pipeline and dithering have their own tests – here only the message handling matters
+// The pipeline and the effects have their own tests – here only the message handling matters
 const rendered = {} as ImageBitmap
 vi.mock("../effects/pipeline.ts", () => ({renderPixelEffect: vi.fn(() => rendered)}))
 vi.mock("../effects/dither/index.ts", () => ({dither: vi.fn((image: ImageData) => image)}))
+vi.mock("../effects/halftone/halftone.ts", () => ({halftone: vi.fn((image: ImageData) => image)}))
 
 // In jsdom `self` is the window – the worker module sets its onmessage and calls its postMessage
 let postMessage: ReturnType<typeof vi.spyOn>
@@ -23,6 +25,7 @@ afterEach(() => {
     vi.restoreAllMocks()
     vi.mocked(renderPixelEffect).mockClear()
     vi.mocked(dither).mockClear()
+    vi.mocked(halftone).mockClear()
 })
 
 function receive(request: RenderRequest) {
@@ -69,12 +72,24 @@ describe("render worker", () => {
         expect(dither).toHaveBeenCalledWith(pixels, params)
     })
 
-    it.each([
-        ["halftone", defaultHalftone],
-        ["ascii", defaultAscii],
-    ] as const)("shows the original for %s until it is implemented", (effect, params) => {
+    it("renders halftone at full size with its params", () => {
+        const source = image()
+        const params = {...defaultHalftone, gridSize: 12}
+        receive({type: "setImage", bitmap: source})
+        receive({type: "render", effect: "halftone", params})
+
+        const [from, pixelSize, apply] = vi.mocked(renderPixelEffect).mock.lastCall!
+        expect(from).toBe(source)
+        // The grid comes from the effect itself – the image must not be shrunk first
+        expect(pixelSize).toBe(1)
+        const pixels = {} as ImageData
+        apply(pixels)
+        expect(halftone).toHaveBeenCalledWith(pixels, params)
+    })
+
+    it("shows the original for ascii until it is implemented", () => {
         receive({type: "setImage", bitmap: image()})
-        receive({type: "render", effect, params} as RenderRequest)
+        receive({type: "render", effect: "ascii", params: defaultAscii})
 
         const [, pixelSize, apply] = vi.mocked(renderPixelEffect).mock.lastCall!
         expect(pixelSize).toBe(1)
