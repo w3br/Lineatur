@@ -236,3 +236,92 @@ Bayer at pixel size 1: 98 ms. Above ~16 ms per frame the browser can't keep 60 f
 **Next**
 - Day 4: move `src/effects/` into a Web Worker, so the UI stays responsive while an effect is computed
 - Then Halftone and ASCII
+
+## Day 4 – Web Worker, Halftone and ASCII (2026-10-22 – 2026-10-27)
+
+**Why a worker**
+- Day 3 measured up to ~0.5 s per render at pixel size 1 – during that time the main thread can't react to the slider, so it lags
+- A Web Worker is a second thread: the effect runs there, the main thread stays free for input, React and painting
+- The worker doesn't make rendering faster, it stops it from **blocking**. The render time stays about the same – the slider just stays smooth while the image follows a moment later
+- This is where Day 3's decision pays off: effects are plain TypeScript without DOM or React, so they moved into the worker unchanged
+
+**Worker (`worker/render.worker.ts`)**
+- Messages are a discriminated union in `messages.ts` (`setImage` / `render` in, `rendered` / `skipped` / `error` out). A typed `send()` wrapper makes TypeScript check every response
+- The current image lives in the worker: it's sent once with `setImage`, after that a render request only carries the settings
+- The result goes back as a **transfer**, not a copy – the bitmap moves to the main thread without duplicating its pixels
+- The worker **always** answers: `skipped` without an image, `error` when rendering throws. Otherwise the main thread would wait forever for a job that never finishes
+- `document.createElement("canvas")` doesn't exist in a worker → `OffscreenCanvas`. `renderPixelEffect` moved from `lib/render.ts` to `effects/pipeline.ts` for that
+- Vite bundles the worker from `new Worker(new URL("./render.worker.ts", import.meta.url), {type: "module"})` – no config, no generator
+
+**"Only the latest job counts" (`worker/useRenderer.ts`)**
+- At most one job is rendering and at most one is waiting. A new job while the worker is busy overwrites the waiting one – while dragging a slider, all positions in between are skipped
+- `busy` and `pending` are refs, not state: they change constantly and must not trigger a re-render
+- Every response frees the worker – also `skipped` and `error`, otherwise `busy` would stay stuck and nothing would render again
+- The previous result bitmap is closed when the next one arrives (inside the `setResult` updater, because the handler is created once and would otherwise only see the first result)
+- `ImageCanvas` builds the job with `useMemo`, so it's a new object only when effect or params really change – otherwise every render would send a new job
+- `drawImage` instead of `transferFromImageBitmap`: it doesn't use the bitmap up, so StrictMode can draw twice
+- The status bar shows the real render time: `2400 × 1600 · photo.jpg · 38 ms`
+
+**Measured** (1200 × 800 preview, Floyd–Steinberg, pixel size 1)
+
+| | Render time | Slider |
+|---|---|---|
+| Day 3 (main thread) | 241 ms avg, 462 ms max | lags |
+| Day 4 (worker) | TODO ms | TODO |
+
+**Halftone (`effects/halftone/halftone.ts`)**
+- Pixel-based instead of drawing: the tutorial draws a dot per grid point onto a canvas, I go the other way – **inverse mapping**: every pixel is rotated back into the grid and asks "am I inside the dot of my cell?". Same result, but a pure function on `ImageData` that's fully unit-testable without a canvas
+- Two passes: first the average gray per cell (sum + count), then every pixel is painted ink or paper
+- **Area ∝ darkness**, not the radius: square `h = (s/2) · √d`, circle `r = s · √(d/π)`, line `t = s · d`. Check for the circle: `π r² = s² · d` ✓. With the radius proportional to darkness, mid-tones would look too light
+- Rotation: `u = x cos a + y sin a`, `v = −x sin a + y cos a` (rotation by −angle, from image space into grid space)
+- Rotated, cell indices go negative. The four image corners are rotated too; their min/max give the bounding box of all cells, and the index is shifted by `minCol` / `minRow`. Shifted by **whole cells**, so at 0° the grid is exactly the same as before – the old tests stayed green as a free regression test
+- `toGrid(x, y)` returns `{cell, lx, ly}` – the same conversion is needed in both passes, so it exists only once. `cos` / `sin` are computed once instead of per pixel
+- Bounds are half-open `[−h, h)`, like the cell itself (`Math.floor`): a dot of size 0 inks nothing, a full dot also inks pixels lying exactly on the cell border
+- `isInk(shape, lx, ly, s, d)` is an exhaustive `switch` – TypeScript complains if a new shape has no case
+- Circles are clipped by their cell: at `d = 1`, `r ≈ 0.564 s` is more than half a cell but less than half its diagonal, so the corners of black areas stay light. Kept on purpose – it looks like real halftone
+- **Deterministic noise**: `Math.random()` would roll new values on every slider change and the image would flicker. `noise2d(col, row)` is a hash from shader code (`fract(sin(x · 12.99 + y · 78.23) · 43758.5)`): looks random, but the same cell always gets the same value. Applied per **cell**, not per pixel, so it varies the dot size instead of fraying the edges. Uses the real `col` / `row`, not the shifted index – otherwise the pattern would jump when the angle changes
+
+**ASCII (`effects/ascii/`)**
+- Cells are `cellSize × 0.6 · cellSize` (monospace characters are about 60 % as wide as tall)
+- Average per cell for free: the image is drawn shrunk to `cols × rows` pixels, one pixel per character. `imageSmoothingQuality = "high"` matters – with the default, Chrome only samples a few pixels when shrinking a lot, and details flicker
+- `asciiChar(luminance, charset, invert)`: character set from light to dark, `index = round(t · (length − 1))`. `round` instead of `floor`, otherwise the darkest character only appears at exactly 0. `[...charset]` splits by code points, so an emoji stays one character
+- `renderAscii` draws with `fillText` on a full-size `OffscreenCanvas`, skips spaces (the background is already there) and sets `fillStyle` once – only "color from image" sets it per character
+- `willReadFrequently` only on the small measuring canvas: the output is never read back, and the option would keep it off the GPU
+- `toAsciiText(cells, params)` returns the picture as text, one line per row, trailing spaces kept so every line has the same width – for the TXT export on Day 5. Takes `ImageData`, so it runs without a canvas
+- `ui-monospace` instead of Geist Mono: fonts loaded in the document aren't available in the worker
+- Not a pixel effect: ASCII draws text at full size instead of changing pixels, so it has its own renderer instead of `renderPixelEffect`
+
+**Tests**
+- 317 tests (Day 3: 197)
+- Worker: message handling with mocked effects – `skipped` without an image, transfer of the result, error answer, ASCII goes through `renderAscii` and not the pixel pipeline
+- Halftone: shapes, rotation at 30 / 45 / 90 / 135° (ink share ≈ darkness), noise (deterministic, per cell, dots stay centered squares – checked via point symmetry)
+- The rotation tests found a real bug: at 45°, some pixel centers lie exactly on a cell border, and 2 of 400 pixels of a black image stayed white → half-open bounds
+- `renderAscii` with a fake `OffscreenCanvas` that records every `fillText` with character, position and current color – testing the commands sent to an API that jsdom doesn't have
+
+**Tooling**
+- `vite.config.ts`: `npm run preview` now uses the GitHub Pages base path `/Lineatur/` too (it showed a blank page before)
+
+**Decisions**
+- Halftone stays pixel-based (inverse mapping) instead of the drawing approach – testable without a canvas, and the existing cell averaging could be reused
+- Circles clipped at the cell border instead of overlapping into neighbor cells
+- Noise per cell with a hash instead of random numbers per pixel
+
+**Learnings**
+- Typed arrays fail silently: `sums[-7] += 1` is ignored, reading `sums[-7]` gives `undefined` → `NaN`. My first rotation looked fine in the tests (all at 0°) and was broken at every other angle
+- The canvas fails silently too: `` `rgb(r, g, b)` `` without `${}` is not a valid color, so the assignment is ignored and `fillStyle` keeps the background color → invisible text. Canvas code needs a look in the browser or tests that check the values sent to it
+- Round the **count** of cells, not the cell **size**: `Math.floor(cellSize · 0.6)` made the characters overlap, while `cols` stayed a fraction and broke `row · cols + col`
+- `params.charSet` vs. `params.characters`: both are `string`, so TypeScript can't tell the preset name from the characters
+- `if / else if` over all union members still gives TS2366 ("lacks ending return statement") – an exhaustive `switch` doesn't
+- `charset.length === -1` can never be true. And `"😀".length` is 2 – JavaScript strings count UTF-16 code units, not characters
+- Units: a gray value is 0–255, darkness is 0–1. A missing `/ 255` clamped almost every cell to 0 – splitting a long formula into named steps makes that visible
+- Anything that doesn't depend on the pixel belongs before the loop – `cos` / `sin`, `fillStyle`, the hex colors
+
+**Open issues**
+- Preview and TXT export use the same steps (`toGray` → `asciiChar`), but in two loops – a change to the character choice has to be made in both
+- The cell width ratio 0.6 is an estimate; `measureText("M").width` would match the real font
+- Geist Mono in the worker (load via `FontFace`) – later
+- Still open from Day 3: threshold slider for Bayer, palette control, errors only in the console
+- GitHub Pages: check that the worker also loads in the live build
+
+**Next**
+- Day 5: undo/redo, export (PNG / JPG / TXT in full resolution), settings in the URL + sample image on start, simple mobile view, keyboard check, README as case study → launch
