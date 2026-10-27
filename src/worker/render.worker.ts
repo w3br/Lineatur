@@ -2,6 +2,7 @@ import type {RenderJob, RenderRequest, RenderResponse} from "./messages.ts"
 import {renderPixelEffect} from "../effects/pipeline.ts"
 import {dither} from "../effects/dither"
 import {halftone} from "../effects/halftone/halftone.ts"
+import {renderAscii} from "../effects/ascii/renderAscii.ts"
 
 // The current image lives in the worker, so a render request only has to carry the settings
 let source: ImageBitmap | null = null
@@ -19,8 +20,7 @@ function render(source: ImageBitmap, job: RenderJob): ImageBitmap {
     if (job.effect === "halftone") {
         return renderPixelEffect(source, 1, (image) => halftone(image, job.params))
     }
-    // ASCII comes in part F – until then the original is shown
-    return renderPixelEffect(source, 1, (image) => image)
+    return renderAscii(source, job.params)
 }
 
 self.onmessage = (event: MessageEvent<RenderRequest>) => {

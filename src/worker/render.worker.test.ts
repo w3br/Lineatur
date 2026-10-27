@@ -3,13 +3,16 @@ import type {RenderRequest} from "./messages.ts"
 import {renderPixelEffect} from "../effects/pipeline.ts"
 import {dither} from "../effects/dither"
 import {halftone} from "../effects/halftone/halftone.ts"
+import {renderAscii} from "../effects/ascii/renderAscii.ts"
 import {defaultAscii, defaultDithering, defaultHalftone} from "../store/params.ts"
 
 // The pipeline and the effects have their own tests – here only the message handling matters
 const rendered = {} as ImageBitmap
+const renderedAscii = {} as ImageBitmap
 vi.mock("../effects/pipeline.ts", () => ({renderPixelEffect: vi.fn(() => rendered)}))
 vi.mock("../effects/dither/index.ts", () => ({dither: vi.fn((image: ImageData) => image)}))
 vi.mock("../effects/halftone/halftone.ts", () => ({halftone: vi.fn((image: ImageData) => image)}))
+vi.mock("../effects/ascii/renderAscii.ts", () => ({renderAscii: vi.fn(() => renderedAscii)}))
 
 // In jsdom `self` is the window – the worker module sets its onmessage and calls its postMessage
 let postMessage: ReturnType<typeof vi.spyOn>
@@ -26,6 +29,7 @@ afterEach(() => {
     vi.mocked(renderPixelEffect).mockClear()
     vi.mocked(dither).mockClear()
     vi.mocked(halftone).mockClear()
+    vi.mocked(renderAscii).mockClear()
 })
 
 function receive(request: RenderRequest) {
@@ -87,14 +91,19 @@ describe("render worker", () => {
         expect(halftone).toHaveBeenCalledWith(pixels, params)
     })
 
-    it("shows the original for ascii until it is implemented", () => {
-        receive({type: "setImage", bitmap: image()})
-        receive({type: "render", effect: "ascii", params: defaultAscii})
+    it("renders ascii with its own renderer instead of the pixel pipeline", () => {
+        // ASCII draws text at full size – it doesn't change pixels, so renderPixelEffect doesn't fit
+        const source = image()
+        const params = {...defaultAscii, cellSize: 12}
+        receive({type: "setImage", bitmap: source})
+        receive({type: "render", effect: "ascii", params})
 
-        const [, pixelSize, apply] = vi.mocked(renderPixelEffect).mock.lastCall!
-        expect(pixelSize).toBe(1)
-        const pixels = {} as ImageData
-        expect(apply(pixels)).toBe(pixels)
+        expect(renderAscii).toHaveBeenCalledWith(source, params)
+        expect(renderPixelEffect).not.toHaveBeenCalled()
+        expect(postMessage).toHaveBeenCalledWith(
+            {type: "rendered", bitmap: renderedAscii, ms: expect.any(Number)},
+            {transfer: [renderedAscii]},
+        )
     })
 
     it("sends the result back as a transfer, with the time it took", () => {
