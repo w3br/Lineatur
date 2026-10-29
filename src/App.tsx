@@ -14,6 +14,7 @@ import type {Effect} from "./store/params.ts"
 import {CanvasArea} from "./components/canvas/CanvasArea.tsx"
 import {StatusBar} from "./components/layout/StatusBar.tsx"
 import {useFilePicker} from "./hooks/useFilePicker.tsx"
+import {useUndoShortcuts} from "./hooks/useUndoShortcuts.ts"
 
 // One panel per effect – the effect switcher picks which one is shown
 const panels: Record<Effect, ComponentType> = {
@@ -31,6 +32,11 @@ function App() {
     const hasImage = useEditorStore((state) => state.image !== null)
     const loadFile = useEditorStore((state) => state.loadFile)
     const picker = useFilePicker(loadFile)
+    const canUndo = useEditorStore((state) => state.past.length > 0)
+    const canRedo = useEditorStore((state) => state.future.length > 0)
+    const undo = useEditorStore((state) => state.undo)
+    const redo = useEditorStore((state) => state.redo)
+    useUndoShortcuts(undo, redo)
 
     // Capitalized, so JSX treats it as a component: <Panel/>
     const Panel = panels[effect]
@@ -63,8 +69,18 @@ function App() {
                             <div className={styles.history}>
                                 {picker.input}
                                 <IconButton icon={<ImageUp size={16} />} label="Open image" onClick={picker.open} />
-                                <IconButton icon={<Undo2 size={16} />} label="Undo" />
-                                <IconButton icon={<Redo2 size={16} />} label="Redo" />
+                                <IconButton
+                                    icon={<Undo2 size={16} />}
+                                    label="Undo"
+                                    onClick={undo}
+                                    disabled={!canUndo}
+                                />
+                                <IconButton
+                                    icon={<Redo2 size={16} />}
+                                    label="Redo"
+                                    onClick={redo}
+                                    disabled={!canRedo}
+                                />
                             </div>
                             <Button variant="primary" icon={<Download size={16} />} disabled={!hasImage}>
                                 Export

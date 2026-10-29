@@ -220,3 +220,141 @@ describe("loadFile", () => {
         })
     })
 })
+
+describe("undo / redo", () => {
+    // Grouping depends on time, so the test controls the clock
+    beforeEach(() => vi.useFakeTimers())
+    afterEach(() => vi.useRealTimers())
+
+    // Longer than the 500 ms grouping window – the next change starts a new undo step
+    const pause = () => vi.advanceTimersByTime(600)
+
+    it("starts with an empty history", () => {
+        const {past, future} = useEditorStore.getState()
+        expect(past).toEqual([])
+        expect(future).toEqual([])
+    })
+
+    it("groups quick changes into one undo step (one slider drag)", () => {
+        const {updateHalftone} = useEditorStore.getState()
+        updateHalftone({gridSize: 10})
+        vi.advanceTimersByTime(100)
+        updateHalftone({gridSize: 12})
+        vi.advanceTimersByTime(100)
+        updateHalftone({gridSize: 14})
+
+        expect(useEditorStore.getState().past).toHaveLength(1)
+        useEditorStore.getState().undo()
+        expect(useEditorStore.getState().halftone.gridSize).toBe(8)
+    })
+
+    it("creates separate steps for changes more than 500 ms apart", () => {
+        const {updateHalftone} = useEditorStore.getState()
+        updateHalftone({gridSize: 10})
+        pause()
+        updateHalftone({gridSize: 12})
+
+        useEditorStore.getState().undo()
+        expect(useEditorStore.getState().halftone.gridSize).toBe(10)
+        useEditorStore.getState().undo()
+        expect(useEditorStore.getState().halftone.gridSize).toBe(8)
+    })
+
+    it("restores an undone change with redo", () => {
+        useEditorStore.getState().updateDithering({threshold: 70})
+        useEditorStore.getState().undo()
+        expect(useEditorStore.getState().dithering.threshold).toBe(50)
+
+        useEditorStore.getState().redo()
+        expect(useEditorStore.getState().dithering.threshold).toBe(70)
+        expect(useEditorStore.getState().future).toEqual([])
+    })
+
+    it("clears the redo stack on a new change", () => {
+        useEditorStore.getState().updateAscii({cellSize: 12})
+        useEditorStore.getState().undo()
+        expect(useEditorStore.getState().future).toHaveLength(1)
+
+        useEditorStore.getState().updateAscii({invert: true})
+        expect(useEditorStore.getState().future).toEqual([])
+    })
+
+    it("does nothing when there is nothing to undo or redo", () => {
+        const before = useEditorStore.getState()
+        useEditorStore.getState().undo()
+        useEditorStore.getState().redo()
+        // Same reference = Zustand saw no change, so nothing re-renders
+        expect(useEditorStore.getState()).toBe(before)
+    })
+
+    it("starts a new step for a change right after undo", () => {
+        const {updateHalftone} = useEditorStore.getState()
+        updateHalftone({gridSize: 10})
+        pause()
+        updateHalftone({gridSize: 12})
+        useEditorStore.getState().undo()
+        // Within 500 ms of the undo – must still be its own step (lastChangeAt reset)
+        vi.advanceTimersByTime(100)
+        updateHalftone({gridSize: 20})
+
+        useEditorStore.getState().undo()
+        expect(useEditorStore.getState().halftone.gridSize).toBe(10)
+    })
+
+    it("treats an effect switch as its own undo step", () => {
+        useEditorStore.getState().updateHalftone({gridSize: 10})
+        pause()
+        useEditorStore.getState().setEffect("ascii")
+
+        useEditorStore.getState().undo()
+        expect(useEditorStore.getState().effect).toBe("halftone")
+        expect(useEditorStore.getState().halftone.gridSize).toBe(10)
+    })
+
+    it("ignores a switch to the already active effect", () => {
+        useEditorStore.getState().setEffect("halftone")
+        expect(useEditorStore.getState().past).toEqual([])
+    })
+
+    it("restores all effects at once, not only the active one", () => {
+        useEditorStore.getState().updateHalftone({contrast: 40})
+        useEditorStore.getState().updateDithering({contrast: -20})
+        useEditorStore.getState().undo()
+
+        const {halftone, dithering} = useEditorStore.getState()
+        expect(halftone.contrast).toBe(0)
+        expect(dithering.contrast).toBe(0)
+    })
+
+    it("keeps at most 100 undo steps and drops the oldest", () => {
+        const {updateHalftone} = useEditorStore.getState()
+        for (let i = 1; i <= 101; i++) {
+            updateHalftone({gridSize: i})
+            pause()
+        }
+
+        const {past} = useEditorStore.getState()
+        expect(past).toHaveLength(100)
+        // The default (gridSize 8 before the first change) fell out – the oldest kept step is gridSize 1
+        expect(past[0].halftone.gridSize).toBe(1)
+    })
+
+    it("does not touch the history when an image is set", () => {
+        useEditorStore.getState().updateHalftone({gridSize: 10})
+        const before = useEditorStore.getState().past
+        useEditorStore.getState().setImage({name: "photo.jpg", width: 800, height: 600} as LoadedImage)
+        useEditorStore.getState().setRenderMs(20)
+
+        expect(useEditorStore.getState().past).toBe(before)
+    })
+
+    it("does not undo the image", () => {
+        const image = {name: "photo.jpg", width: 800, height: 600} as LoadedImage
+        useEditorStore.getState().updateHalftone({gridSize: 10})
+        useEditorStore.getState().setImage(image)
+        useEditorStore.getState().undo()
+
+        expect(useEditorStore.getState().image).toBe(image)
+        expect(useEditorStore.getState().halftone.gridSize).toBe(8)
+    })
+})
