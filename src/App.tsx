@@ -1,8 +1,7 @@
 import {AppShell} from "./components/layout/AppShell.tsx"
 import {TopBar} from "./components/layout/TopBar.tsx"
-import {Button} from "./components/ui/Button.tsx"
 import {IconButton} from "./components/ui/IconButton.tsx"
-import {Download, Redo2, Undo2, ImageUp} from "lucide-react"
+import {Redo2, Undo2, ImageUp} from "lucide-react"
 import {SegmentedControl} from "./components/ui/SegmentedControl.tsx"
 import {HalftonePanel} from "./components/panels/HalftonePanel.tsx"
 import {DitheringPanel} from "./components/panels/DitheringPanel.tsx"
@@ -13,6 +12,7 @@ import {useEditorStore} from "./store/useEditorStore.ts"
 import type {Effect} from "./store/params.ts"
 import {CanvasArea} from "./components/canvas/CanvasArea.tsx"
 import {StatusBar} from "./components/layout/StatusBar.tsx"
+import {ExportDialog} from "./components/export/ExportDialog.tsx"
 import {useFilePicker} from "./hooks/useFilePicker.tsx"
 import {useUndoShortcuts} from "./hooks/useUndoShortcuts.ts"
 
@@ -29,7 +29,6 @@ const logoUrl = `${import.meta.env.BASE_URL}favicon.svg`
 function App() {
     const effect = useEditorStore((state) => state.effect)
     const setEffect = useEditorStore((state) => state.setEffect)
-    const hasImage = useEditorStore((state) => state.image !== null)
     const loadFile = useEditorStore((state) => state.loadFile)
     const picker = useFilePicker(loadFile)
     const canUndo = useEditorStore((state) => state.past.length > 0)
@@ -82,9 +81,7 @@ function App() {
                                     disabled={!canRedo}
                                 />
                             </div>
-                            <Button variant="primary" icon={<Download size={16} />} disabled={!hasImage}>
-                                Export
-                            </Button>
+                            <ExportDialog />
                         </>
                     }
                 />

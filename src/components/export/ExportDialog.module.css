@@ -1,0 +1,48 @@
+.dialog {
+    width: min(22rem, calc(100vw - var(--space-32)));
+    padding: var(--space-20);
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+}
+
+/* Only when open: display on .dialog would override the browser's hiding of a closed dialog */
+.dialog[open] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+}
+
+.dialog::backdrop {
+    background: var(--bg-overlay);
+}
+
+.title {
+    /* <h2> comes with browser margins and its own font size */
+    margin: 0;
+    font-size: var(--text-h-sm-size);
+    line-height: var(--text-h-sm-line);
+    font-weight: var(--weight-semibold);
+}
+
+.info,
+.error {
+    margin: 0;
+    font-size: var(--text-sm-size);
+    line-height: var(--text-sm-line);
+}
+
+.info {
+    color: var(--text-secondary);
+}
+
+.error {
+    color: var(--danger);
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-8);
+}

@@ -25,9 +25,10 @@ describe("loadImage", () => {
     // jsdom can neither decode images nor draw, so both are faked:
     // decoding a File returns a bitmap of the given size, decoding a canvas returns the canvas size
     let decodedSize = {width: 0, height: 0}
+    const closeDecoded = vi.fn()
     const createImageBitmap = vi.fn(async (source: File | HTMLCanvasElement) =>
         source instanceof File
-            ? ({...decodedSize} as ImageBitmap)
+            ? ({...decodedSize, close: closeDecoded} as unknown as ImageBitmap)
             : ({width: source.width, height: source.height} as ImageBitmap),
     )
 
@@ -42,6 +43,7 @@ describe("loadImage", () => {
         vi.unstubAllGlobals()
         vi.restoreAllMocks()
         createImageBitmap.mockClear()
+        closeDecoded.mockClear()
     })
 
     it("rejects unsupported files before decoding them", async () => {
@@ -79,7 +81,7 @@ describe("loadImage", () => {
     })
 
     it.each([
-        ["landscape", 6000, 4000, 1200, 800],
+        ["landscape", 3600, 2400, 1200, 800],
         ["portrait", 1000, 3000, 400, 1200],
     ])(
         "scales a large %s image down to 1200 px on the long side",
@@ -94,6 +96,39 @@ describe("loadImage", () => {
             expect(image.original).toMatchObject({width, height})
         },
     )
+
+    it("doesn't touch an original of exactly 4096 px", async () => {
+        decodedSize = {width: 4096, height: 2048}
+
+        const image = await loadImage(file("image/png"))
+
+        expect(image.original).toMatchObject({width: 4096, height: 2048})
+        expect(closeDecoded).not.toHaveBeenCalled()
+    })
+
+    it.each([
+        ["landscape", 8192, 4096, 4096, 2048, 1200, 600],
+        ["portrait", 3000, 6000, 2048, 4096, 600, 1200],
+    ])(
+        "limits a huge %s image to 4096 px and reports the limited size",
+        async (_, width, height, originalWidth, originalHeight, previewWidth, previewHeight) => {
+            decodedSize = {width, height}
+
+            const image = await loadImage(file("image/png"))
+
+            expect(image).toMatchObject({width: originalWidth, height: originalHeight})
+            expect(image.original).toMatchObject({width: originalWidth, height: originalHeight})
+            expect(image.preview).toMatchObject({width: previewWidth, height: previewHeight})
+        },
+    )
+
+    it("frees the full decoded bitmap once the limited copy exists", async () => {
+        decodedSize = {width: 8192, height: 4096}
+
+        await loadImage(file("image/png"))
+
+        expect(closeDecoded).toHaveBeenCalledOnce()
+    })
 })
 
 describe("closeImage", () => {

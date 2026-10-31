@@ -325,3 +325,35 @@ Bayer at pixel size 1: 98 ms. Above ~16 ms per frame the browser can't keep 60 f
 
 **Next**
 - Day 5: undo/redo, export (PNG / JPG / TXT in full resolution), settings in the URL + sample image on start, simple mobile view, keyboard check, README as case study → launch
+
+## Day 5 – Export in full resolution (2026-10-31)
+
+**Export pipeline**
+- Size params are set in preview pixels, so `scaleParams` multiplies `gridSize`, `pixelSize` and `cellSize` by `original / preview` before the export. Angle, tone and colors stay. Not rounded: with a factor of 1.33, grid size 11 instead of 10.67 would visibly move the grid. The noise needs no scaling – it hangs on the cell, not the pixel
+- `exportImage` starts a short-lived worker per export, so the preview's "latest job wins" logic stays untouched. The original is copied, not transferred, or the second export would have no image
+- PNG / JPG draw the rendered bitmap onto a canvas and call `convertToBlob`; TXT goes through `asciiCells` + `toAsciiText` and never touches a canvas for drawing
+- `ExportDialog` uses the native `<dialog>`: focus trap, Escape, backdrop and focus return for free. `role="status"` announces "Exporting…", because a disabled button says nothing
+
+**Decisions**
+- Originals are limited to 4096 px on the long side in `loadImage`. Safari limits a canvas to about 16.7 MP and fails silently. Limiting at load keeps preview, scale factor and the shown size in sync. The price: a 6000 px photo also exports at 4096 px in Chrome
+- The chosen format is derived while rendering (`txt` falls back to `png` outside ASCII) instead of being corrected in an effect, so going back to ASCII restores it
+
+**Checked in Chrome (production build)**
+- All effects as PNG and JPG, TXT, second export, scale factor 1.33 and 1, limit (8192 → 4096 px), keyboard only. Grid and dots sit in the same place as in the preview, only sharper
+- JPG is **larger** than PNG for these effects (halftone 3.6 MB vs. 1.1 MB at 3600 × 2400): two flat colors with hard edges are what PNG is good at and JPG is bad at
+
+**Tests**
+- 389 tests (Day 4: 317)
+- `render.worker.test.ts`: "answers exactly once" found a missing `return` – every export also ran the preview render
+
+**Learnings**
+- `postMessage` is a blind spot for TypeScript: it takes anything, so a wrong message only fails at runtime. Declaring the message as `RenderRequest` first closes that gap
+- `.finally()` hides the return type from `new Promise`, so it needs an explicit `new Promise<Blob>`
+- A wrong return type (`Record<RenderJob, number>`) also switched off the check that would have found the next bug: a value next to `params` instead of inside
+- Strings are immutable: `name.replace(...)` without using the result does nothing, and neither TypeScript nor the linter says so
+- `convertToBlob` with an unknown type (`image/jpg`) doesn't fail, it silently returns a PNG
+
+**Open issues**
+- Export not yet tested in Firefox and Safari
+- A running export can't be cancelled
+- Errors show in the dialog only – the status bar message follows in part D

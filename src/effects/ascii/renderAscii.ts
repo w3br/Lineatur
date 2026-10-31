@@ -2,9 +2,11 @@ import type {AsciiParams} from "../../store/params.ts"
 import {toGray} from "../tone.ts"
 import {asciiChar} from "./ascii.ts"
 
-export function renderAscii(source: ImageBitmap, params: AsciiParams): ImageBitmap {
+const CHAR_WIDTH_RATIO = 0.6 // Average width/height ratio of a monospace font
+
+export function asciiCells(source: ImageBitmap, params: AsciiParams): ImageData {
     const cellH = params.cellSize
-    const cellW = params.cellSize * 0.6 // 0.6 is the average width/height ratio of a monospace font
+    const cellW = params.cellSize * CHAR_WIDTH_RATIO
     const cols = Math.floor(Math.max(1, source.width / cellW))
     const rows = Math.floor(Math.max(1, source.height / cellH))
 
@@ -15,7 +17,15 @@ export function renderAscii(source: ImageBitmap, params: AsciiParams): ImageBitm
 
     context.imageSmoothingQuality = "high"
     context.drawImage(source, 0, 0, cols, rows)
-    const cells = context.getImageData(0, 0, cols, rows)
+    return context.getImageData(0, 0, cols, rows)
+}
+
+export function renderAscii(source: ImageBitmap, params: AsciiParams): ImageBitmap {
+    const cells = asciiCells(source, params)
+    const cols = cells.width
+    const rows = cells.height
+    const cellH = params.cellSize
+    const cellW = params.cellSize * CHAR_WIDTH_RATIO
 
     // No willReadFrequently here: this canvas is never read back, and the option would keep it off the GPU
     const out = new OffscreenCanvas(source.width, source.height)

@@ -2,7 +2,7 @@ export type LoadedImage = {
     name: string
     width: number
     height: number
-    /** Full resolution – used for export */
+    /** Max. 4096 px on the long side – used for export */
     original: ImageBitmap
     /** Max. 1200 px on the long side – used for the live preview */
     preview: ImageBitmap
@@ -10,6 +10,8 @@ export type LoadedImage = {
 
 export const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"]
 const PREVIEW_MAX = 1200
+// Safari limits a canvas to about 16.7 megapixels (4096²) and fails silently above that
+const ORIGINAL_MAX = 4096
 
 export function isSupportedImage(file: File): boolean {
     return ACCEPTED_TYPES.includes(file.type)
@@ -20,11 +22,19 @@ export async function loadImage(file: File): Promise<LoadedImage> {
         throw new Error(`Unsupported file type: ${file.type || "unknown"}`)
     }
 
-    const original = await createImageBitmap(file)
-    const scale = Math.min(1, PREVIEW_MAX / Math.max(original.width, original.height))
-    const preview = scale === 1 ? original : await resize(original, scale)
+    const decoded = await createImageBitmap(file)
+    const original = await fitWithin(decoded, ORIGINAL_MAX)
+    // Limiting here, not at export: preview, scale factor and the size shown in the UI stay in sync
+    if (original !== decoded) decoded.close()
+    const preview = await fitWithin(original, PREVIEW_MAX)
 
     return {name: file.name, width: original.width, height: original.height, original, preview}
+}
+
+/** Returns the same bitmap when it already fits, otherwise a smaller copy. */
+function fitWithin(bitmap: ImageBitmap, max: number): ImageBitmap | Promise<ImageBitmap> {
+    const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height))
+    return scale === 1 ? bitmap : resize(bitmap, scale)
 }
 
 /** Draws the bitmap smaller onto a temporary canvas – works in every browser. */
