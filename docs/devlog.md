@@ -356,4 +356,42 @@ Bayer at pixel size 1: 98 ms. Above ~16 ms per frame the browser can't keep 60 f
 **Open issues**
 - Export not yet tested in Firefox and Safari
 - A running export can't be cancelled
-- Errors show in the dialog only – the status bar message follows in part D
+- Export errors stay in the dialog: the status bar sits behind the modal
+
+## Day 5 – Shareable links and sample image (2026-10-31)
+
+**Shareable links**
+- `src/lib/shareParams.ts`: `parseShareParams` and `serializeShareParams` are pure functions, so every broken link can be a unit test. Only the active effect and only values that differ from the default end up in the link
+- Ranges, choices and character presets moved to `params.ts` – sliders and the URL check read the same numbers
+- A link can be edited by anyone, so nothing is trusted: numbers are clamped and rounded, choices must be known, colors go through `normalizeHex`, booleans are only `1` / `0`
+- `src/store/urlSync.ts` subscribes to the store outside of React. It compares effect and params first, because `subscribe` also fires for `renderMs` and the history, then waits 300 ms before writing
+- Applied with `setState`, not `updateHalftone`: opening a link is no undo step
+
+**Sample image**
+- `src/store/loadSample.ts` runs on start; any failure just leaves the empty state
+- With the sample, the empty state D01 only shows briefly on start or when the file is missing
+
+**Decisions**
+- `replaceState` is debounced instead of called on every change as planned: Safari throws after about 100 calls in 30 s, and a slider drag gets there
+- A preset's characters aren't part of the link. The name is enough, and a link can't make the two disagree
+- Custom characters are cut at 100 when reading a link, by code point so an emoji isn't split
+
+**Checked in Chrome (production build)**
+- Shared link, broken link, 30 slider steps (1 write), undo clears the query, no new history entries, round trip with an emoji in the custom characters, missing sample, slow sample while opening my own image
+
+**Learnings**
+- `Number(null)` and `Number("")` are `0`, which passes `Number.isFinite`. `?gridSize=` would have become the minimum instead of the default
+- `response.ok` proves nothing on a dev server: a missing file comes back as 200 with `index.html`. Checking the blob's type catches that
+- Checking `image === null` isn't enough to protect the user's file from the sample: it's still null while their image decodes, and the sample's `loadFile` would cancel it through `latestRequest`
+- A sample image needs `hasLoadRequest()` instead
+
+**Open issues**
+- `public/samples/sample.jpg` is 8.4 MB and 3135 × 4700 px: about 4 s until the first image at 20 Mbit/s. Target: about 1600 px and 300 KB
+
+## Day 5 – Visible error messages (2026-10-31)
+
+- `showMessage` puts a message into the status bar for 4 s. The timer lives next to `latestRequest`, not in the store: nothing renders it. A new message clears the old timer, otherwise it would disappear too early
+- `loadFile` says what to do: unsupported type or broken file. Worker errors show "Rendering failed". The console keeps the details in both cases
+- `role="status"` is always in the DOM, also while empty and without an image. Screen readers only announce changes in a live region they already know, so adding it together with the text would stay silent
+- First attempt: `lastMessageAt`, copied from `lastChangeAt`. That pattern only works when a later event does the comparing – a message has to disappear with nothing else happening, which takes a timer
+- `getByRole("status")` returning the same element before and after a change is the test for that

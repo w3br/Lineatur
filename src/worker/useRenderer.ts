@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from "react"
 import type {RenderJob, RenderRequest, RenderResponse, RenderResult} from "./messages.ts"
+import {useEditorStore} from "../store/useEditorStore.ts"
 
 /**
  * Renders effects in a Web Worker so the UI never blocks.
@@ -39,6 +40,7 @@ export function useRenderer(source: ImageBitmap | null, job: RenderJob): RenderR
                 })
             } else if (response.type === "error") {
                 console.error(response.message)
+                useEditorStore.getState().showMessage("Rendering failed")
             }
 
             if (pending.current) {

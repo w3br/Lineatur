@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it} from "vitest"
-import {cleanup, render, screen} from "@testing-library/react"
+import {act, cleanup, render, screen} from "@testing-library/react"
 import {StatusBar} from "./StatusBar.tsx"
 import {useEditorStore} from "../../store/useEditorStore.ts"
 import type {LoadedImage} from "../../lib/loadImage.ts"
@@ -35,5 +35,46 @@ describe("StatusBar", () => {
         const {container} = render(<StatusBar />)
 
         expect(container.textContent).toBe("2400 × 1600 · photo.jpg · 0 ms")
+    })
+
+    describe("message", () => {
+        it("appears in a live region", () => {
+            useEditorStore.setState({message: "Rendering failed"})
+            render(<StatusBar />)
+
+            expect(screen.getByRole("status").textContent).toBe("Rendering failed")
+        })
+
+        it("keeps the status next to it", () => {
+            useEditorStore.setState({image, message: "Rendering failed"})
+            const {container} = render(<StatusBar />)
+
+            expect(container.textContent).toBe("2400 × 1600 · photo.jpg" + "Rendering failed")
+        })
+
+        it.each([
+            ["without an image", null],
+            ["with an image", image],
+        ])("has its live region ready before there is text, %s", (_, loaded) => {
+            useEditorStore.setState({image: loaded})
+            render(<StatusBar />)
+            const region = screen.getByRole("status")
+            expect(region.textContent).toBe("")
+
+            act(() => useEditorStore.setState({message: "Rendering failed"}))
+
+            // The same element – a newly added live region stays silent in screen readers
+            expect(screen.getByRole("status")).toBe(region)
+            expect(region.textContent).toBe("Rendering failed")
+        })
+
+        it("keeps the live region when an image arrives", () => {
+            render(<StatusBar />)
+            const region = screen.getByRole("status")
+
+            act(() => useEditorStore.setState({image}))
+
+            expect(screen.getByRole("status")).toBe(region)
+        })
     })
 })

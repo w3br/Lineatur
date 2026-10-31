@@ -1,5 +1,6 @@
 import {create} from "zustand"
 import {
+    defaultEffect,
     defaultHalftone,
     defaultDithering,
     defaultAscii,
@@ -8,7 +9,7 @@ import {
     type DitheringParams,
     type AsciiParams,
 } from "./params.ts"
-import {closeImage, loadImage, type LoadedImage} from "../lib/loadImage.ts"
+import {closeImage, loadImage, type LoadedImage, isSupportedImage} from "../lib/loadImage.ts"
 
 type EditorState = {
     effect: Effect
@@ -31,11 +32,22 @@ type EditorState = {
     setImage: (image: LoadedImage | null) => void
     setRenderMs: (ms: number | null) => void
     loadFile: (file: File) => Promise<void>
+    /** Shown in the status bar for a few seconds, e.g. when a file can't be opened */
+    message: string | null
+    showMessage: (text: string) => void
 }
 
 type Snapshot = Pick<EditorState, "effect" | "halftone" | "dithering" | "ascii">
 
 let latestRequest = 0
+
+/** True as soon as any image was requested – also while it's still decoding, when `image` is null. */
+export function hasLoadRequest(): boolean {
+    return latestRequest > 0
+}
+
+const MESSAGE_MS = 4000
+let messageTimer: ReturnType<typeof setTimeout> | undefined
 
 function snapshotOf(state: EditorState): Snapshot {
     return {
@@ -63,7 +75,7 @@ function record(state: EditorState): Pick<EditorState, "past" | "future" | "last
 }
 
 export const useEditorStore = create<EditorState>()((set, get) => ({
-    effect: "halftone",
+    effect: defaultEffect,
     halftone: defaultHalftone,
     dithering: defaultDithering,
     ascii: defaultAscii,
@@ -72,6 +84,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     past: [],
     future: [],
     lastChangeAt: 0,
+    message: null,
 
     undo: () =>
         set((state) => {
@@ -96,6 +109,13 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
                 lastChangeAt: 0,
             }
         }),
+
+    showMessage: (text) => {
+        // A new message gets its full time – the old timer would clear it too early
+        clearTimeout(messageTimer)
+        set({message: text})
+        messageTimer = setTimeout(() => set({message: null}), MESSAGE_MS)
+    },
 
     setEffect: (effect) => set((state) => (effect === state.effect ? state : {...record(state), effect})),
     updateHalftone: (params) =>
@@ -131,7 +151,11 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
             set({image: next})
             if (previous) closeImage(previous)
         } catch (error) {
+            // The console keeps the details, the status bar says what to do
             console.error(error)
+            get().showMessage(
+                isSupportedImage(file) ? "Could not open this image" : "Unsupported file – use PNG, JPG or WebP",
+            )
         }
     },
 }))

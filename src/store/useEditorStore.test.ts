@@ -358,3 +358,65 @@ describe("undo / redo", () => {
         expect(useEditorStore.getState().halftone.gridSize).toBe(8)
     })
 })
+
+describe("showMessage", () => {
+    beforeEach(() => vi.useFakeTimers())
+    afterEach(() => vi.useRealTimers())
+
+    it("shows the message and removes it after 4 s", () => {
+        useEditorStore.getState().showMessage("Rendering failed")
+        expect(useEditorStore.getState().message).toBe("Rendering failed")
+
+        vi.advanceTimersByTime(3999)
+        expect(useEditorStore.getState().message).toBe("Rendering failed")
+
+        vi.advanceTimersByTime(1)
+        expect(useEditorStore.getState().message).toBeNull()
+    })
+
+    it("gives a new message its full time", () => {
+        useEditorStore.getState().showMessage("First")
+        vi.advanceTimersByTime(3000)
+
+        useEditorStore.getState().showMessage("Second")
+        vi.advanceTimersByTime(3000)
+
+        expect(useEditorStore.getState().message).toBe("Second")
+    })
+
+    it("is no undo step", () => {
+        useEditorStore.getState().showMessage("Rendering failed")
+
+        expect(useEditorStore.getState().past).toEqual([])
+    })
+})
+
+describe("loadFile messages", () => {
+    beforeEach(() => {
+        vi.spyOn(console, "error").mockImplementation(() => {})
+    })
+
+    it("names the supported types for an unsupported file", async () => {
+        vi.mocked(loadImage).mockRejectedValueOnce(new Error("Unsupported file type: application/pdf"))
+
+        await useEditorStore.getState().loadFile(new File(["x"], "doc.pdf", {type: "application/pdf"}))
+
+        expect(useEditorStore.getState().message).toBe("Unsupported file – use PNG, JPG or WebP")
+    })
+
+    it("says something else for a broken file of a supported type", async () => {
+        vi.mocked(loadImage).mockRejectedValueOnce(new Error("The source image could not be decoded"))
+
+        await useEditorStore.getState().loadFile(new File(["x"], "broken.png", {type: "image/png"}))
+
+        expect(useEditorStore.getState().message).toBe("Could not open this image")
+    })
+
+    it("stays silent when loading works", async () => {
+        vi.mocked(loadImage).mockResolvedValueOnce({name: "photo.png"} as LoadedImage)
+
+        await useEditorStore.getState().loadFile(new File(["x"], "photo.png", {type: "image/png"}))
+
+        expect(useEditorStore.getState().message).toBeNull()
+    })
+})

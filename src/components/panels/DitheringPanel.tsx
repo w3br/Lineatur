@@ -4,6 +4,7 @@ import {SliderRow} from "../ui/SliderRow.tsx"
 import {SegmentedControl} from "../ui/SegmentedControl.tsx"
 import {ColorRow} from "../ui/ColorRow.tsx"
 import {useEditorStore} from "../../store/useEditorStore.ts"
+import {ditheringRanges} from "../../store/params.ts"
 
 export function DitheringPanel() {
     const params = useEditorStore((state) => state.dithering)
@@ -25,8 +26,7 @@ export function DitheringPanel() {
                 <SliderRow
                     label="Pixel size"
                     value={params.pixelSize}
-                    min={1}
-                    max={8}
+                    {...ditheringRanges.pixelSize}
                     onChange={(pixelSize) => update({pixelSize})}
                 />
                 <SegmentedControl
@@ -46,22 +46,19 @@ export function DitheringPanel() {
                 <SliderRow
                     label="Contrast"
                     value={params.contrast}
-                    min={-100}
-                    max={100}
+                    {...ditheringRanges.contrast}
                     onChange={(contrast) => update({contrast})}
                 />
                 <SliderRow
                     label="Brightness"
                     value={params.brightness}
-                    min={-100}
-                    max={100}
+                    {...ditheringRanges.brightness}
                     onChange={(brightness) => update({brightness})}
                 />
                 <SliderRow
                     label="Threshold"
                     value={params.threshold}
-                    min={0}
-                    max={100}
+                    {...ditheringRanges.threshold}
                     onChange={(threshold) => update({threshold})}
                 />
             </PanelSection>

@@ -4,6 +4,7 @@ import {act, renderHook} from "@testing-library/react"
 import {useRenderer} from "./useRenderer.ts"
 import type {RenderJob, RenderRequest, RenderResponse} from "./messages.ts"
 import {defaultDithering} from "../store/params.ts"
+import {useEditorStore} from "../store/useEditorStore.ts"
 
 // jsdom has no Worker – the fake records what it gets, and the test decides when it answers
 class FakeWorker {
@@ -147,6 +148,16 @@ describe("useRenderer", () => {
         worker.respond({type: "error", message: "Could not create a 2D canvas context"})
 
         expect(consoleError).toHaveBeenCalledWith("Could not create a 2D canvas context")
+    })
+
+    it("tells the user when rendering fails", () => {
+        vi.spyOn(console, "error").mockImplementation(() => {})
+        useEditorStore.setState({message: null})
+        const {worker} = setup({source: source(), job: job(10)})
+
+        worker.respond({type: "error", message: "Could not create a 2D canvas context"})
+
+        expect(useEditorStore.getState().message).toBe("Rendering failed")
     })
 
     it("frees the previous bitmap when a new result arrives", () => {

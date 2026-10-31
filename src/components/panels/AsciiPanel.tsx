@@ -5,15 +5,9 @@ import {SliderRow} from "../ui/SliderRow.tsx"
 import {SwitchRow} from "../ui/SwitchRow.tsx"
 import {ColorRow} from "../ui/ColorRow.tsx"
 import {useEditorStore} from "../../store/useEditorStore.ts"
+import {asciiRanges, charsetPresets} from "../../store/params.ts"
 
 type Charset = "standard" | "blocks" | "detailed" | "custom"
-
-// Characters ordered from light to dark
-const charsetPresets: Record<Exclude<Charset, "custom">, string> = {
-    standard: " .:-=+*#%@",
-    blocks: " ░▒▓█",
-    detailed: " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",
-}
 
 export function AsciiPanel() {
     const params = useEditorStore((state) => state.ascii)
@@ -53,8 +47,7 @@ export function AsciiPanel() {
                 <SliderRow
                     label="Cell size"
                     value={params.cellSize}
-                    min={4}
-                    max={32}
+                    {...asciiRanges.cellSize}
                     onChange={(cellSize) => update({cellSize})}
                 />
             </PanelSection>
@@ -63,15 +56,13 @@ export function AsciiPanel() {
                 <SliderRow
                     label="Contrast"
                     value={params.contrast}
-                    min={-100}
-                    max={100}
+                    {...asciiRanges.contrast}
                     onChange={(contrast) => update({contrast})}
                 />
                 <SliderRow
                     label="Brightness"
                     value={params.brightness}
-                    min={-100}
-                    max={100}
+                    {...asciiRanges.brightness}
                     onChange={(brightness) => update({brightness})}
                 />
             </PanelSection>

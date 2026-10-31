@@ -3,6 +3,7 @@ import {SliderRow} from "../ui/SliderRow.tsx"
 import {SegmentedControl} from "../ui/SegmentedControl.tsx"
 import {ColorRow} from "../ui/ColorRow.tsx"
 import {useEditorStore} from "../../store/useEditorStore.ts"
+import {halftoneRanges} from "../../store/params.ts"
 
 export function HalftonePanel() {
     const params = useEditorStore((state) => state.halftone)
@@ -14,11 +15,15 @@ export function HalftonePanel() {
                 <SliderRow
                     label="Grid size"
                     value={params.gridSize}
-                    min={2}
-                    max={40}
+                    {...halftoneRanges.gridSize}
                     onChange={(gridSize) => update({gridSize})}
                 />
-                <SliderRow label="Angle" value={params.angle} min={0} max={180} onChange={(angle) => update({angle})} />
+                <SliderRow
+                    label="Angle"
+                    value={params.angle}
+                    {...halftoneRanges.angle}
+                    onChange={(angle) => update({angle})}
+                />
                 <SegmentedControl
                     label="Dot shape"
                     options={[
@@ -35,18 +40,21 @@ export function HalftonePanel() {
                 <SliderRow
                     label="Contrast"
                     value={params.contrast}
-                    min={-100}
-                    max={100}
+                    {...halftoneRanges.contrast}
                     onChange={(contrast) => update({contrast})}
                 />
                 <SliderRow
                     label="Brightness"
                     value={params.brightness}
-                    min={-100}
-                    max={100}
+                    {...halftoneRanges.brightness}
                     onChange={(brightness) => update({brightness})}
                 />
-                <SliderRow label="Noise" value={params.noise} min={0} max={100} onChange={(noise) => update({noise})} />
+                <SliderRow
+                    label="Noise"
+                    value={params.noise}
+                    {...halftoneRanges.noise}
+                    onChange={(noise) => update({noise})}
+                />
             </PanelSection>
 
             <PanelSection title="Colors">

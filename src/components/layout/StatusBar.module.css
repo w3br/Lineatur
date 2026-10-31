@@ -1,0 +1,8 @@
+.message {
+    color: var(--danger);
+}
+
+/* Only with text: an empty span must not move the centered status */
+.message:not(:empty) {
+    margin-inline-start: var(--space-12);
+}
