@@ -95,3 +95,10 @@
     border-radius: var(--radius-full);
     background: var(--accent-default);
 }
+
+/* A finger needs a bigger target than a mouse pointer: at least 24 px (WCAG 2.5.8) */
+@media (pointer: coarse) {
+    .slider {
+        --thumb-size: var(--space-20);
+    }
+}

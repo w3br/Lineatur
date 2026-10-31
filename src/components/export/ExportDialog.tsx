@@ -1,5 +1,4 @@
-import {useId, useRef, useState} from "react"
-import {Download} from "lucide-react"
+import {useId, useImperativeHandle, useRef, useState, type Ref} from "react"
 import styles from "./ExportDialog.module.css"
 import {Button} from "../ui/Button.tsx"
 import {SegmentedControl} from "../ui/SegmentedControl.tsx"
@@ -15,8 +14,18 @@ const imageFormats: Option<ExportFormat>[] = [
 ]
 const asciiFormats: Option<ExportFormat>[] = [...imageFormats, {value: "txt", label: "TXT"}]
 
-/** The Export button and its dialog – a native <dialog> brings the focus trap, Escape and the backdrop. */
-export function ExportDialog() {
+export type ExportDialogHandle = {open: () => void}
+
+type ExportDialogProps = {
+    ref: Ref<ExportDialogHandle>
+}
+
+/**
+ * A native <dialog> brings the focus trap, Escape and the backdrop.
+ * Opened through its ref, because the button moves between the top bar and the mobile menu:
+ * a dialog inside a closed menu would be hidden along with it.
+ */
+export function ExportDialog({ref}: ExportDialogProps) {
     const image = useEditorStore((state) => state.image)
     const effect = useEditorStore((state) => state.effect)
     const dialogRef = useRef<HTMLDialogElement>(null)
@@ -28,10 +37,12 @@ export function ExportDialog() {
     // Derived while rendering: "txt" stays remembered, so going back to ASCII restores it
     const activeFormat = format === "txt" && effect !== "ascii" ? "png" : format
 
-    function open() {
-        setError(null)
-        dialogRef.current?.showModal()
-    }
+    useImperativeHandle(ref, () => ({
+        open() {
+            setError(null)
+            dialogRef.current?.showModal()
+        },
+    }))
 
     async function handleExport() {
         if (!image || exporting) return
@@ -60,53 +71,47 @@ export function ExportDialog() {
     }
 
     return (
-        <>
-            <Button variant="primary" icon={<Download size={16} />} disabled={!image} onClick={open}>
-                Export
-            </Button>
+        <dialog
+            ref={dialogRef}
+            className={styles.dialog}
+            aria-labelledby={titleId}
+            onCancel={(event) => {
+                // Escape would hide the running export. Chrome closes on a second Escape anyway –
+                // that's fine: the download still arrives.
+                if (exporting) event.preventDefault()
+            }}
+        >
+            <h2 id={titleId} className={styles.title}>
+                Export image
+            </h2>
 
-            <dialog
-                ref={dialogRef}
-                className={styles.dialog}
-                aria-labelledby={titleId}
-                onCancel={(event) => {
-                    // Escape would hide the running export. Chrome closes on a second Escape anyway –
-                    // that's fine: the download still arrives.
-                    if (exporting) event.preventDefault()
-                }}
-            >
-                <h2 id={titleId} className={styles.title}>
-                    Export image
-                </h2>
+            <SegmentedControl
+                label="Format"
+                showLabel
+                options={effect === "ascii" ? asciiFormats : imageFormats}
+                value={activeFormat}
+                onChange={setFormat}
+            />
 
-                <SegmentedControl
-                    label="Format"
-                    showLabel
-                    options={effect === "ascii" ? asciiFormats : imageFormats}
-                    value={activeFormat}
-                    onChange={setFormat}
-                />
+            {/* role="status": a disabled button says nothing, so screen readers hear the progress here */}
+            <p className={styles.info} role="status">
+                {describeResult()}
+            </p>
 
-                {/* role="status": a disabled button says nothing, so screen readers hear the progress here */}
-                <p className={styles.info} role="status">
-                    {describeResult()}
+            {error && (
+                <p className={styles.error} role="alert">
+                    {error}
                 </p>
+            )}
 
-                {error && (
-                    <p className={styles.error} role="alert">
-                        {error}
-                    </p>
-                )}
-
-                <div className={styles.actions}>
-                    <Button disabled={exporting} onClick={() => dialogRef.current?.close()}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" disabled={exporting} onClick={handleExport}>
-                        {exporting ? "Exporting…" : `Export ${activeFormat.toUpperCase()}`}
-                    </Button>
-                </div>
-            </dialog>
-        </>
+            <div className={styles.actions}>
+                <Button disabled={exporting} onClick={() => dialogRef.current?.close()}>
+                    Cancel
+                </Button>
+                <Button variant="primary" disabled={exporting} onClick={handleExport}>
+                    {exporting ? "Exporting…" : `Export ${activeFormat.toUpperCase()}`}
+                </Button>
+            </div>
+        </dialog>
     )
 }

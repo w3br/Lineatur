@@ -49,3 +49,26 @@
     line-height: var(--text-xs-line);
     color: var(--text-tertiary);
 }
+
+@media (max-width: 767px) {
+    .shell {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: var(--size-topbar) 45dvh minmax(0, 1fr) var(--size-statusbar);
+        grid-template-areas:
+            "topBar"
+            "canvas"
+            "panel"
+            "statusBar";
+        /* dvh: follows the address bar that a phone shows and hides */
+        height: 100dvh;
+    }
+
+    .canvas {
+        padding: var(--space-12);
+    }
+
+    .panel {
+        border-left: none;
+        border-top: 1px solid var(--border-default);
+    }
+}

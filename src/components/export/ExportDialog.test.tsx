@@ -1,7 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest"
+import {useRef} from "react"
 import {cleanup, render, screen, waitFor} from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import {ExportDialog} from "./ExportDialog.tsx"
+import {ExportDialog, type ExportDialogHandle} from "./ExportDialog.tsx"
 import {useEditorStore} from "../../store/useEditorStore.ts"
 import {exportImage} from "../../worker/exportImage.ts"
 import {downloadBlob} from "../../lib/downloadBlob.ts"
@@ -24,10 +25,21 @@ function exportButton() {
     return screen.getByRole<HTMLButtonElement>("button", {name: "Export"})
 }
 
-/** Renders the dialog and opens it, as a click on the top bar's button does. */
+/** The real button lives in the top bar or the mobile menu – this one stands in for both. */
+function Harness() {
+    const dialog = useRef<ExportDialogHandle>(null)
+
+    return (
+        <>
+            <button onClick={() => dialog.current?.open()}>Export</button>
+            <ExportDialog ref={dialog} />
+        </>
+    )
+}
+
 async function openDialog() {
     const user = userEvent.setup()
-    render(<ExportDialog />)
+    render(<Harness />)
     await user.click(exportButton())
     return user
 }
@@ -53,13 +65,6 @@ afterEach(() => {
 })
 
 describe("ExportDialog", () => {
-    it("can't be opened without an image", () => {
-        useEditorStore.setState({image: null})
-        render(<ExportDialog />)
-
-        expect(exportButton().disabled).toBe(true)
-    })
-
     it("opens a labelled dialog with the export size", async () => {
         await openDialog()
 

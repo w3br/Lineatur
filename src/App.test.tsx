@@ -22,16 +22,27 @@ function fakeImage(name: string) {
 
 const png = new File(["png"], "photo.png", {type: "image/png"})
 
+// jsdom has no matchMedia
+function setWidth(mobile: boolean) {
+    window.matchMedia = vi.fn(() => ({
+        matches: mobile,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+    })) as unknown as typeof window.matchMedia
+}
+
 function setup() {
     const {container} = render(<App />)
     // The top bar's own hidden input – the drop zone renders a second one while no image is loaded
     const input = container.querySelector<HTMLInputElement>('header input[type="file"]')!
-    const openButton = screen.getByRole("button", {name: "Open image"})
+    // hidden: on a phone it sits in the closed menu
+    const openButton = screen.getByRole("button", {name: "Open image", hidden: true})
     return {input, openButton}
 }
 
 beforeEach(() => {
     useEditorStore.setState(useEditorStore.getInitialState())
+    setWidth(false)
     // jsdom can't draw – ImageCanvas only needs getContext not to crash
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null)
 })
@@ -105,5 +116,48 @@ describe("Open image button", () => {
         expect(document.activeElement).toBe(screen.getByRole("button", {name: "Undo"}))
         await user.tab()
         expect(document.activeElement).toBe(screen.getByRole("button", {name: "Redo"}))
+    })
+})
+
+describe("top bar", () => {
+    it("keeps the controls in the bar on a desktop", () => {
+        setup()
+
+        expect(screen.getByRole("radio", {name: "Halftone"}).closest("header")).not.toBeNull()
+        expect(screen.queryByRole("button", {name: "Menu"})).toBeNull()
+    })
+
+    describe("on a phone", () => {
+        beforeEach(() => setWidth(true))
+
+        it("moves everything into one menu", () => {
+            setup()
+            const menu = document.querySelector("[popover]")!
+
+            for (const name of ["Undo", "Redo", "Open image", "Export"]) {
+                expect(menu.contains(screen.getByRole("button", {name, hidden: true}))).toBe(true)
+            }
+            expect(menu.contains(screen.getByRole("radio", {name: "ASCII", hidden: true}))).toBe(true)
+        })
+
+        it("has exactly one switcher and one export button", () => {
+            setup()
+
+            expect(screen.getAllByRole("radio", {name: "Halftone", hidden: true})).toHaveLength(1)
+            expect(screen.getAllByRole("button", {name: "Export", hidden: true})).toHaveLength(1)
+        })
+
+        it("opens the export dialog outside of the menu – inside, it would be hidden with it", async () => {
+            const user = userEvent.setup()
+            HTMLElement.prototype.hidePopover = vi.fn()
+            HTMLDialogElement.prototype.showModal = vi.fn()
+            useEditorStore.getState().setImage(fakeImage("photo.png"))
+            setup()
+
+            await user.click(screen.getByRole("button", {name: "Export", hidden: true}))
+
+            expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalledOnce()
+            expect(document.querySelector("[popover] dialog")).toBeNull()
+        })
     })
 })

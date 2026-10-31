@@ -395,3 +395,23 @@ Bayer at pixel size 1: 98 ms. Above ~16 ms per frame the browser can't keep 60 f
 - `role="status"` is always in the DOM, also while empty and without an image. Screen readers only announce changes in a live region they already know, so adding it together with the text would stay silent
 - First attempt: `lastMessageAt`, copied from `lastChangeAt`. That pattern only works when a later event does the comparing – a message has to disappear with nothing else happening, which takes a timer
 - `getByRole("status")` returning the same element before and after a change is the test for that
+
+## Day 5 – Mobile view (2026-10-31)
+
+- Below 768 px the grid is one column: top bar, preview (45dvh), panel, status bar. `dvh` follows the address bar that phones show and hide
+- The top bar only shows the logo and a menu button. Effect switcher, undo, redo, open image and export live in `MobileMenu`
+- `popover` instead of `<dialog>`: Escape and tap outside for free, and the page isn't blocked, so the preview stays visible while switching effects
+- First version with text buttons in several rows: 265 px high, the preview was almost completely covered. Two rows are 121 px. Found on a screenshot, every automated check had passed
+- The menu stays open on an effect change: the switcher fires `onChange` on every arrow key, so closing there would break keyboard use
+- `useMediaQuery` with `useSyncExternalStore` instead of hiding things with CSS: otherwise the DOM would hold two switchers and two export buttons
+- `ExportDialog` no longer contains its button and opens through a ref. A dialog inside a closed popover would be hidden with it. It stays mounted in both layouts, so the chosen format survives a rotation
+- The menu closes before the dialog opens, so focus goes back to the menu button afterwards
+- Slider thumb is 24 px on touch devices (`pointer: coarse`, WCAG 2.5.8)
+
+**Learnings**
+- `display` on a closed popover would show it – the same trap as with `<dialog>`, so it's scoped to `:popover-open`
+- A closed popover has no accessible name, so tests find it by attribute
+
+**Open issues**
+- Landscape on a phone works, but the panel only shows about one slider
+- Checked in emulated mobile Chrome only, not on a real phone

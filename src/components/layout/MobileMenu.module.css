@@ -1,0 +1,33 @@
+/* Only when open: display on .menu would override the browser's hiding of a closed popover */
+.menu:popover-open {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+}
+
+.menu {
+    /* Directly below the top bar and full width, instead of the popover's default center */
+    position: fixed;
+    inset: var(--size-topbar) 0 auto;
+    width: 100%;
+    max-height: calc(100dvh - var(--size-topbar));
+    margin: 0;
+    padding: var(--space-12);
+    overflow-y: auto;
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+    border: none;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+/* Takes the rest of the row – it's the one primary action */
+.export {
+    flex: 1;
+    justify-content: center;
+}
