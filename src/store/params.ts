@@ -14,7 +14,6 @@ export type HalftoneParams = {
 export type DitheringParams = {
     algorithm: "floyd-steinberg" | "atkinson" | "bayer"
     pixelSize: number
-    palette: "1bit" | "2colors" | "4colors"
     contrast: number
     brightness: number
     threshold: number
@@ -68,7 +67,6 @@ export const ditheringAlgorithms = [
     "atkinson",
     "bayer",
 ] as const satisfies readonly DitheringParams["algorithm"][]
-export const palettes = ["1bit", "2colors", "4colors"] as const satisfies readonly DitheringParams["palette"][]
 export const charSets = ["standard", "blocks", "detailed", "custom"] as const satisfies readonly AsciiParams["charSet"][]
 
 // Characters ordered from light to dark
@@ -94,7 +92,6 @@ export const defaultHalftone: HalftoneParams = {
 export const defaultDithering: DitheringParams = {
     algorithm: "atkinson",
     pixelSize: 2,
-    palette: "1bit",
     contrast: 0,
     brightness: 0,
     threshold: 50,

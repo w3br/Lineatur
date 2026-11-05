@@ -31,6 +31,14 @@ describe("parseShareParams", () => {
         expect(parseShareParams("?foo=bar&__proto__=1").halftone).toEqual(defaultHalftone)
     })
 
+    // The palette control was removed before v1 – old links must still open
+    it("ignores palette in old links", () => {
+        expect(parseShareParams("?effect=dithering&palette=4colors&pixelSize=4").dithering).toEqual({
+            ...defaultDithering,
+            pixelSize: 4,
+        })
+    })
+
     it.each([
         ["too large", "gridSize=9999", 40],
         ["too small", "gridSize=0", 2],
@@ -53,7 +61,6 @@ describe("parseShareParams", () => {
     it.each([
         ["shape", "?shape=star", "halftone"],
         ["algorithm", "?effect=dithering&algorithm=magic", "dithering"],
-        ["palette", "?effect=dithering&palette=8bit", "dithering"],
         ["charSet", "?effect=ascii&charSet=runes", "ascii"],
     ] as const)("falls back to the default for an unknown %s", (_, query, effect) => {
         expect(parseShareParams(query)[effect]).toEqual(defaults[effect])
@@ -148,7 +155,7 @@ describe("a link survives the round trip", () => {
             {
                 ...defaults,
                 effect: "dithering",
-                dithering: {...defaultDithering, algorithm: "bayer", palette: "4colors", background: "#ffee00"},
+                dithering: {...defaultDithering, algorithm: "bayer", background: "#ffee00"},
             },
         ],
         [

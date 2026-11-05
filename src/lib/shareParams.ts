@@ -13,7 +13,6 @@ import {
     dotShapes,
     effects,
     halftoneRanges,
-    palettes,
     type AsciiParams,
     type DitheringParams,
     type Effect,
@@ -78,7 +77,6 @@ function readDithering(query: URLSearchParams): DitheringParams {
     return {
         algorithm: readChoice(query, "algorithm", ditheringAlgorithms, fallback.algorithm),
         pixelSize: readNumber(query, "pixelSize", ditheringRanges.pixelSize, fallback.pixelSize),
-        palette: readChoice(query, "palette", palettes, fallback.palette),
         contrast: readNumber(query, "contrast", ditheringRanges.contrast, fallback.contrast),
         brightness: readNumber(query, "brightness", ditheringRanges.brightness, fallback.brightness),
         threshold: readNumber(query, "threshold", ditheringRanges.threshold, fallback.threshold),
