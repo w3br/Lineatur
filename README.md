@@ -24,10 +24,21 @@ halftone (circle, square, line; rotated grid; deterministic noise), dithering (F
 
 Designed in Figma first: a component library with variables, then four screens – empty state, halftone, dithering and ASCII. The variables became [`tokens.css`](src/styles/tokens.css), so code and design share every color, spacing and radius.
 
-| Figma | App |
-|---|---|
-| ![Figma: halftone](docs/design/figma-prototypes/D02%20-%20Halftone.png) | ![App: halftone](docs/media/app-halftone.png) |
-| ![Figma: ASCII](docs/design/figma-prototypes/D04%20-%20ASCII.png) | ![App: ASCII](docs/media/app-ascii.png) |
+<!-- HTML instead of a Markdown table: GitHub sizes Markdown columns by image width, so the larger Figma export took more space -->
+<table>
+  <tr>
+    <th width="50%">Figma</th>
+    <th width="50%">App</th>
+  </tr>
+  <tr>
+    <td><img src="docs/design/figma-prototypes/D02%20-%20Halftone.png" alt="Figma: halftone" width="100%"></td>
+    <td><img src="docs/media/app-halftone.png" alt="App: halftone" width="100%"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/design/figma-prototypes/D04%20-%20ASCII.png" alt="Figma: ASCII" width="100%"></td>
+    <td><img src="docs/media/app-ascii.png" alt="App: ASCII" width="100%"></td>
+  </tr>
+</table>
 
 ## Technical challenges
 
