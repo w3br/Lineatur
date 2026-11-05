@@ -421,7 +421,7 @@ Bayer at pixel size 1: 98 ms. Above ~16 ms per frame the browser can't keep 60 f
 **Polish**
 - `sample.jpg`: 8.4 MB → 300 KB (3135 × 4700 → 1600 px long side, `sips`, JPEG quality 80)
 - The threshold slider is hidden for Bayer: the matrix *is* the threshold there, and a slider that does nothing is worse than none
-- The palette control is out of the panel. "1 bit" and "2 colors" mean the same to users, "4 colors" is its own feature (4 levels + two more color fields) → v1.1
+- The palette control is gone, also from `DitheringParams` and the link parser – old links with `?palette=` still open, the key is just ignored. "1 bit" and "2 colors" mean the same to users, "4 colors" is its own feature (4 levels + two more color fields) → v1.1
 - Open Graph tags + `og.png` for link previews on LinkedIn and Slack. `og:image` needs an absolute URL, because crawlers don't resolve paths against the page
 
 **Checked**
@@ -445,4 +445,29 @@ Bayer at pixel size 1: 98 ms. Above ~16 ms per frame the browser can't keep 60 f
 
 **Open issues**
 - The "browser too old" message disappears after 4 s like every other message. Here it should stay
-- `palette` is still in `DitheringParams`, `params.ts` and `shareParams.ts` (only the control is commented out)
+
+## Day 5 – Launch (2026-11-05)
+
+**v1.0.0 is live:** [w3br.github.io/Lineatur](https://w3br.github.io/Lineatur/)
+
+- Three effects (halftone, dithering, ASCII) with live preview in a Web Worker
+- Undo / redo, export as PNG / JPG / TXT in full resolution, shareable links, sample image on start
+- Desktop and mobile layout, keyboard only, screen reader, Lighthouse 100 / 100 / 100 / 100
+- 475 tests, lint and build green
+- README rewritten as a case study, with demo GIF and Figma vs. app
+
+**Live check (GitHub Pages)**
+- Sample image, all three effects, the worker runs, export in all three formats, a shared link opens the right preset in a private window, iPhone, link preview in the LinkedIn Post Inspector
+
+**Media**
+- The demo GIF was 37 MB (2880 px Retina, 447 frames). 64 colors + lossy compression got it to 3.4 MB, but it looked bad. Scaling to 1000 px with full colors: 4.3 MB and sharp – GitHub shows the README at about 880 px anyway
+- Screenshots and GIF live in `docs/media/`, not in `public/`: everything in `public/` is deployed with the app
+- The Figma vs. app comparison is an HTML table: GitHub sizes Markdown table columns by image width, so the 2880 px Figma exports took more space than the 1440 px screenshots
+
+**Ideas for v1.1**
+- Palette with 4 levels and two more colors
+- Threshold as an offset for Bayer instead of hiding the slider
+- A message that stays for "browser too old"
+- Cancel a running export, export errors in the status bar
+- More space for the panel in landscape on a phone
+- Geist Mono in the worker for ASCII
