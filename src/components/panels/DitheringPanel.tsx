@@ -1,7 +1,7 @@
 import {PanelSection} from "../layout/PanelSection.tsx"
 import {SelectRow} from "../ui/SelectRow.tsx"
 import {SliderRow} from "../ui/SliderRow.tsx"
-import {SegmentedControl} from "../ui/SegmentedControl.tsx"
+// import {SegmentedControl} from "../ui/SegmentedControl.tsx"
 import {ColorRow} from "../ui/ColorRow.tsx"
 import {useEditorStore} from "../../store/useEditorStore.ts"
 import {ditheringRanges} from "../../store/params.ts"
@@ -29,17 +29,17 @@ export function DitheringPanel() {
                     {...ditheringRanges.pixelSize}
                     onChange={(pixelSize) => update({pixelSize})}
                 />
-                <SegmentedControl
-                    label="Palette"
-                    showLabel
-                    options={[
-                        {value: "1bit", label: "1 bit"},
-                        {value: "2colors", label: "2 colors"},
-                        {value: "4colors", label: "4 colors"},
-                    ]}
-                    value={params.palette}
-                    onChange={(palette) => update({palette})}
-                />
+                {/*<SegmentedControl*/}
+                {/*    label="Palette"*/}
+                {/*    showLabel*/}
+                {/*    options={[*/}
+                {/*        {value: "1bit", label: "1 bit"},*/}
+                {/*        {value: "2colors", label: "2 colors"},*/}
+                {/*        {value: "4colors", label: "4 colors"},*/}
+                {/*    ]}*/}
+                {/*    value={params.palette}*/}
+                {/*    onChange={(palette) => update({palette})}*/}
+                {/*/>*/}
             </PanelSection>
 
             <PanelSection title="Tone">
@@ -55,12 +55,14 @@ export function DitheringPanel() {
                     {...ditheringRanges.brightness}
                     onChange={(brightness) => update({brightness})}
                 />
-                <SliderRow
-                    label="Threshold"
-                    value={params.threshold}
-                    {...ditheringRanges.threshold}
-                    onChange={(threshold) => update({threshold})}
-                />
+                {params.algorithm !== "bayer" && (
+                    <SliderRow
+                        label="Threshold"
+                        value={params.threshold}
+                        {...ditheringRanges.threshold}
+                        onChange={(threshold) => update({threshold})}
+                    />
+                )}
             </PanelSection>
 
             <PanelSection title="Colors">
