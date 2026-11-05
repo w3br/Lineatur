@@ -22,6 +22,11 @@ export function useRenderer(source: ImageBitmap | null, job: RenderJob): RenderR
 
     // 1. Start the worker – once, and again after StrictMode's test unmount
     useEffect(() => {
+        // OffscreenCanvas: Safari 16.4+, Chrome 69+, Firefox 105+
+        if (typeof OffscreenCanvas === "undefined") {
+            useEditorStore.getState().showMessage("Your browser is too old – please update it")
+            return
+        }
         const worker = new Worker(new URL("./render.worker.ts", import.meta.url), {type: "module"})
         workerRef.current = worker
 

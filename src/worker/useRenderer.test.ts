@@ -40,6 +40,8 @@ let workers: FakeWorker[] = []
 beforeEach(() => {
     workers = []
     vi.stubGlobal("Worker", FakeWorker)
+    // jsdom has no OffscreenCanvas either – the hook only checks that it exists
+    vi.stubGlobal("OffscreenCanvas", class {})
 })
 
 afterEach(() => {
@@ -158,6 +160,18 @@ describe("useRenderer", () => {
         worker.respond({type: "error", message: "Could not create a 2D canvas context"})
 
         expect(useEditorStore.getState().message).toBe("Rendering failed")
+    })
+
+    // Safari before 16.4: the worker would fail on every job
+    it("starts no worker and tells the user when OffscreenCanvas is missing", () => {
+        vi.stubGlobal("OffscreenCanvas", undefined)
+        useEditorStore.setState({message: null})
+
+        const {result} = renderHook(() => useRenderer(source(), job(10)))
+
+        expect(workers).toHaveLength(0)
+        expect(result.current).toBeNull()
+        expect(useEditorStore.getState().message).toBe("Your browser is too old – please update it")
     })
 
     it("frees the previous bitmap when a new result arrives", () => {

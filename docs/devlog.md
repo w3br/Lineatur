@@ -415,3 +415,34 @@ Bayer at pixel size 1: 98 ms. Above ~16 ms per frame the browser can't keep 60 f
 **Open issues**
 - Landscape on a phone works, but the panel only shows about one slider
 - Checked in emulated mobile Chrome only, not on a real phone
+
+## Day 5 – Polish and quality check (2026-11-05)
+
+**Polish**
+- `sample.jpg`: 8.4 MB → 300 KB (3135 × 4700 → 1600 px long side, `sips`, JPEG quality 80)
+- The threshold slider is hidden for Bayer: the matrix *is* the threshold there, and a slider that does nothing is worse than none
+- The palette control is out of the panel. "1 bit" and "2 colors" mean the same to users, "4 colors" is its own feature (4 levels + two more color fields) → v1.1
+- Open Graph tags + `og.png` for link previews on LinkedIn and Slack. `og:image` needs an absolute URL, because crawlers don't resolve paths against the page
+
+**Checked**
+- Keyboard only: open image, switch effect, every control, export dialog, Escape
+- Reduced motion (macOS), VoiceOver: controls are announced with name and value, messages in the status bar are read
+- Chrome, Firefox, Safari 15.6 (fails, see below), iPhone 15 on the deployed GitHub Pages version (worker runs there too – open point from Day 4)
+- Lighthouse on the production build: Performance 99, Accessibility 96 → 100 after the contrast fix (TODO: confirm with a second run)
+- Lint, build, 475 tests
+
+**Found and fixed**
+- Contrast: `--text-tertiary` (#6b6b73) was 3.4 : 1 on the panel and the status bar, WCAG AA needs 4.5 : 1 for text that small. Now #88888f: 5.1 : 1 on the panel, 4.7 : 1 on `--bg-elevated`, still clearly a step below `--text-secondary`. One token, six Lighthouse findings. (TODO: update `text/tertiary` in Figma)
+- Safari 15.6 (macOS 12): nothing rendered. Cause: no `OffscreenCanvas` before Safari 16.4, so the worker failed on every job. `useRenderer` now checks for it before starting the worker and says "Your browser is too old – please update it" instead of "Rendering failed"
+
+**Decisions**
+- Feature detection instead of a fallback on the main thread: a second render pipeline for a browser from 2022 isn't worth it. Requirement: Safari 16.4+, Chrome 69+, Firefox 105+
+
+**Learnings**
+- A color that looks fine in Figma can still fail: 3.4 : 1 reads well on a good monitor, but not for everyone. Checking it is a tool's job, not the eye's
+- My iPhone was newer than my Mac – "works in Safari" depends on which Safari
+- The new check broke 15 tests at once: jsdom has no `OffscreenCanvas`, so every test needed a stub. A guard changes the environment the tests run in, too
+
+**Open issues**
+- The "browser too old" message disappears after 4 s like every other message. Here it should stay
+- `palette` is still in `DitheringParams`, `params.ts` and `shareParams.ts` (only the control is commented out)
