@@ -27,3 +27,4 @@ dist-ssr
 CLAUDE.md
 TAG-*-TUTORIAL.md
 .claude/
+docs/media/*-original.*

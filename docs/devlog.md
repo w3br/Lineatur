@@ -428,7 +428,7 @@ Bayer at pixel size 1: 98 ms. Above ~16 ms per frame the browser can't keep 60 f
 - Keyboard only: open image, switch effect, every control, export dialog, Escape
 - Reduced motion (macOS), VoiceOver: controls are announced with name and value, messages in the status bar are read
 - Chrome, Firefox, Safari 15.6 (fails, see below), iPhone 15 on the deployed GitHub Pages version (worker runs there too – open point from Day 4)
-- Lighthouse on the production build: Performance 99, Accessibility 96 → 100 after the contrast fix (TODO: confirm with a second run)
+- Lighthouse on the production build: first run Performance 99, Accessibility 96 – after the contrast fix 100 in Performance, Accessibility, Best Practices and SEO
 - Lint, build, 475 tests
 
 **Found and fixed**
